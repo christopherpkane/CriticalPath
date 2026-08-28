@@ -1676,6 +1676,7 @@
         <button id="disconnectBtn" class="danger-ghost">Turn Sharing Off</button>
       </div>
       <p class="info-note">Send that downloaded file to anyone who needs to edit the schedule — by email, Teams, or SharePoint. When they open it, they're looking at the same live schedule you are.</p>
+      <p class="info-note" id="hostedNote" hidden></p>
     </div>
 
     <div class="card" id="encryptionCard" hidden>
@@ -1729,8 +1730,8 @@ create policy "app access" on critical_path
           <p>In the left menu click <b>Project Settings</b> → <b>API</b>. Copy the two values it shows you into the boxes below, then click Connect.</p>
           <label class="setup-label" for="cfgUrl">Project URL</label>
           <input type="text" id="cfgUrl" class="setup-input" placeholder="https://something.supabase.co" autocomplete="off" spellcheck="false">
-          <label class="setup-label" for="cfgKey">anon public key (the long one)</label>
-          <input type="text" id="cfgKey" class="setup-input" placeholder="eyJhbGciOi..." autocomplete="off" spellcheck="false">
+          <label class="setup-label" for="cfgKey">Publishable key (labelled <b>anon public</b> on older projects) — never the secret one</label>
+          <input type="text" id="cfgKey" class="setup-input" placeholder="sb_publishable_… or eyJhbGciOi…" autocomplete="off" spellcheck="false">
           <div class="setup-actions">
             <button class="primary" id="connectBtn">Connect</button>
             <span id="connectStatus" class="connect-status"></span>
@@ -2099,15 +2100,43 @@ create policy "app access" on critical_path
   // collide. A separate "__settings" row carries the week-of date. Writes are debounced
   // and only the changed rows are sent; a light poll of id+updated_at pulls in other
   // people's edits without re-downloading the whole schedule every few seconds.
-  const CFG = window.CRITICAL_PATH_CONFIG || {};
+  // Where the connection details come from, best first:
+  //   1. baked into the file itself — how a copy you hand out arrives ready to go
+  //   2. remembered in this browser — how a copy opened from a web address stays
+  //      connected after a refresh, since a page on a server cannot rewrite itself
+  // Nothing here is a password. Supabase publishes the anon key on purpose; what
+  // guards the schedule is the table rule and, if you turn it on, the passphrase.
+  const CLOUD_REMEMBER = 'brownhaven.criticalpath.cloud';
+
+  function rememberedCloud(){
+    try {
+      const raw = window.localStorage.getItem(CLOUD_REMEMBER);
+      if(!raw) return null;
+      const v = JSON.parse(raw);
+      return (v && v.supabaseUrl && v.supabaseKey) ? v : null;
+    } catch(_){ return null; }        // private window, or storage switched off
+  }
+
+  function rememberCloud(url, key){
+    try {
+      if(url && key) window.localStorage.setItem(CLOUD_REMEMBER,
+                        JSON.stringify({ supabaseUrl: url, supabaseKey: key }));
+      else window.localStorage.removeItem(CLOUD_REMEMBER);
+    } catch(_){}
+  }
+
+  const BAKED = window.CRITICAL_PATH_CONFIG || {};
+  const CFG = (String(BAKED.supabaseUrl || '').trim() && String(BAKED.supabaseKey || '').trim())
+    ? BAKED : (rememberedCloud() || BAKED);
   let CLOUD_URL = String(CFG.supabaseUrl || '').trim().replace(/\/+$/, '');
   let CLOUD_KEY = String(CFG.supabaseKey || '').trim();
   let CLOUD_ON = !!(CLOUD_URL && CLOUD_KEY);
-  function setCloudConfig(url, key){
+  function setCloudConfig(url, key, remember){
     CLOUD_URL = String(url || '').trim().replace(/\/+$/, '');
     CLOUD_KEY = String(key || '').trim();
     CLOUD_ON = !!(CLOUD_URL && CLOUD_KEY);
     window.CRITICAL_PATH_CONFIG = { supabaseUrl: CLOUD_URL, supabaseKey: CLOUD_KEY };
+    if(remember !== false) rememberCloud(CLOUD_URL, CLOUD_KEY);
   }
   const TABLE = 'critical_path';
   const SETTINGS_ROW = '__settings';
@@ -4762,7 +4791,7 @@ create policy "app access" on critical_path
     document.getElementById('paneExport').hidden = (name !== 'export');
     document.getElementById('paneSharing').hidden = (name !== 'sharing');
     if(name === 'export') renderExportTab();
-    if(name === 'sharing') renderSharingTab();
+    if(name === 'sharing'){ renderSharingTab(); renderHostedNote(); }
   }
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
@@ -4909,6 +4938,29 @@ create policy "app access" on critical_path
   document.getElementById('encChangeBtn').addEventListener('click', changePassphrase);
   document.getElementById('encOffBtn').addEventListener('click', turnOffEncryption);
 
+  // A copy opened from a web address cannot rewrite itself, so it says what to do
+  // instead of pretending the Download button is the whole answer.
+  function renderHostedNote(){
+    const el = document.getElementById('hostedNote');
+    if(!el) return;
+    const hosted = /^https?:$/i.test(location.protocol);
+    el.hidden = !hosted || !CLOUD_ON;
+    if(el.hidden) return;
+    const baked = !!(String((window.CRITICAL_PATH_CONFIG || {}).supabaseUrl || '') &&
+                     document.getElementById('appConfig')
+                     && /supabaseUrl":"http/.test(document.getElementById('appConfig').textContent));
+    el.innerHTML = baked
+      ? `<b>This copy is published at a web address.</b> The connection is written into the `
+        + `page itself, so anyone you send the link to is on the shared schedule the moment `
+        + `they open it — nothing to paste.`
+      : `<b>This copy is published at a web address.</b> A page on a server cannot rewrite `
+        + `itself, so this browser is remembering the connection for you — it will still be `
+        + `here after a refresh, but anyone else opening the link has to paste the two values `
+        + `once. To spare them that: press <b>Download Copy to Send Your Team</b>, rename the `
+        + `downloaded file <b>index.html</b>, and put it back where this page is published. `
+        + `After that the link alone is enough.`;
+  }
+
   function renderSharingTab(){
     document.getElementById('sharingConnected').hidden = !CLOUD_ON;
     document.getElementById('sharingSetup').hidden = !!CLOUD_ON;
@@ -4944,11 +4996,11 @@ create policy "app access" on critical_path
 
     statusEl.textContent = 'Checking…';
     const prev = { url: CLOUD_URL, key: CLOUD_KEY, on: CLOUD_ON };
-    setCloudConfig(url, key);
+    setCloudConfig(url, key, false);          // not remembered until it is known to work
     try {
       await cloudFetch(`${TABLE}?select=id&limit=1`, { headers: cloudHeaders() });
     } catch(err){
-      setCloudConfig(prev.url, prev.key);
+      setCloudConfig(prev.url, prev.key, false);
       statusEl.classList.add('bad');
       statusEl.textContent = /404/.test(String(err))
         ? "Connected, but the table isn't there yet — run the step 2 box first."
@@ -4957,9 +5009,11 @@ create policy "app access" on critical_path
     }
     statusEl.classList.add('ok');
     statusEl.textContent = 'Connected — setting up your shared schedule…';
+    rememberCloud(CLOUD_URL, CLOUD_KEY);      // it works, so this browser keeps it
     await cloudInit();
     applyCloudChrome();
     renderSharingTab();
+    renderHostedNote();
     statusEl.textContent = 'Done. Sharing is on.';
   });
 
@@ -4969,6 +5023,7 @@ create policy "app access" on critical_path
     setSync('off');
     applyCloudChrome();
     renderSharingTab();
+    renderHostedNote();
   });
 
   document.getElementById('downloadConnectedBtn').addEventListener('click', () => {

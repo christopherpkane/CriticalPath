@@ -1,0 +1,8 @@
+# The secret key lives here. It must never reach the repo.
+.env.local
+
+# Working copies that are not the published app. index-with-key.html has the
+# publishable key written into it — fine on your machine, not in a public repo.
+index-with-key.html
+index-no-key.html
+Brown_Haven_Critical_Path_BLANK.html
