@@ -5146,11 +5146,14 @@ create policy "app access" on critical_path
     const btn = document.getElementById('saveAppBtn');
     const hint = document.querySelector('.save-hint');
     if(CLOUD_ON){
-      if(btn) btn.textContent = '⤓ Download Backup';
-      if(hint) hint.innerHTML = 'Sharing is on — every edit saves by itself and reaches everyone else within a few seconds. '
-        + '<b>Download Backup</b> keeps a point-in-time copy you can open offline.';
+      // On a shared copy there is nothing to save by hand — every edit is already in
+      // the database and on everyone else's screen. A download button here only invites
+      // somebody to work from a stale file, so it is not offered at all.
+      if(btn) btn.hidden = true;
+      if(hint) hint.innerHTML = 'Sharing is on — every edit saves by itself and reaches '
+        + 'everyone else within a few seconds. There is nothing to save by hand.';
     } else {
-      if(btn) btn.textContent = '⤓ Save My Tracker';
+      if(btn){ btn.hidden = false; btn.textContent = '⤓ Save My Tracker'; }
       if(hint) hint.innerHTML = 'Nothing saves automatically. Click <b>Save My Tracker</b> to download a fresh copy of this app with all your current data already inside it — '
         + 'open that downloaded file next time and everything is right where you left it. Always work from your newest download; older copies still hold older data.';
     }
