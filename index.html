@@ -2131,16 +2131,36 @@ create policy "app access" on critical_path
     return best;
   }
 
+  // Week w, day d on any board is Week-of + w*7 + d. That is the whole rule, so the
+  // dates sitting on a partner are a copy of it rather than a fact of their own. This
+  // puts the copy back in step and says how many days it had to change — nought means
+  // that partner already agreed.
+  //
+  // No check on p.type here on purpose: anything carrying weeks is a board, whatever its
+  // record happens to say about itself, and a partner whose type got mangled at some
+  // point should not be left quietly frozen on last month's dates because of it.
+  function redateFromAnchor(p){
+    if(!p || !p.weeks || !p.weeks.length) return 0;
+    let n = 0;
+    p.weeks.forEach((w, wi) => {
+      (w.days || []).forEach((day, di) => {
+        const want = toStoredDate(addDays(anchorDate, wi * 7 + di));
+        if(day.date !== want){ day.date = want; n++; }
+      });
+    });
+    return n;
+  }
+
+  function redateEveryone(){
+    let n = 0;
+    Object.keys(PARTNERS).forEach(id => { n += redateFromAnchor(PARTNERS[id]); });
+    return n;
+  }
+
   function applyAnchorDate(monday){
     seenScan();               // write down what the board says BEFORE the dates move
     anchorDate = mondayOf(monday);
-    Object.keys(PARTNERS).forEach(id => {
-      const p = PARTNERS[id];
-      if(p.type !== 'calendar' || !p.weeks) return;
-      p.weeks.forEach((w, wi) => {
-        w.days.forEach((day, di) => { day.date = toStoredDate(addDays(anchorDate, wi * 7 + di)); });
-      });
-    });
+    redateEveryone();
   }
 
   function updateAnchorUI(){
@@ -2386,6 +2406,9 @@ create policy "app access" on critical_path
       }
     }
     if(Object.keys(next).length) PARTNERS = next;
+    // After the loop, so the Week of date off the settings row is the one in hand
+    // whatever order the rows came back in.
+    redateEveryone();
     if(!PARTNERS[selectedId]) selectedId = sortedPartnerIds()[0] || null;
     return true;
   }
@@ -2492,6 +2515,9 @@ create policy "app access" on critical_path
         }
       }
       removed.forEach(id => { if(id !== CRYPTO_ROW){ delete PARTNERS[id]; } delete remoteStamps[id]; });
+      // A partner sent up by somebody else's browser carries whatever dates that browser
+      // had. Same rule as at load: put them back in step before anything is drawn.
+      redateEveryone();
       if(!PARTNERS[selectedId]) selectedId = sortedPartnerIds()[0] || null;
       setSync('synced');
       redrawFromRemote();
@@ -9438,6 +9464,9 @@ create policy "app access" on critical_path
   // goes out to a crew always says who to ring.
   if(clSpreadAll()) markDirty();
   loadCatColors(APP_DATA.catColors);   // before the first paint, so nothing flashes
+  // A saved file can hold a partner that was last written before the Week of date moved.
+  // Straightened out before the first paint, so a board is never drawn on old dates.
+  if(redateEveryone()) markDirty();
   updateAnchorUI();
   renderLegend();
   renderSidebar();
