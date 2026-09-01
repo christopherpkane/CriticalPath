@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asheville Critical Path — Brown Haven Homes</title>
@@ -12,6 +13,8 @@
     color-scheme: light;
     --surface-1:      #ffffff;
     --page-plane:      #f4f5f7;
+    /* the box you are typing in, lifted a shade off the card behind it */
+    --field-focus:    #ffffff;
     --text-primary:   #14161a;
     --text-secondary: #44484f;
     --text-muted:     #6b6f76;
@@ -22,8 +25,8 @@
     --series-2: #eb6834; /* plumbing - orange */
     --series-3: #1baf7a; /* hvac - aqua */
     --series-4: #c98500; /* electrical - amber */
-    --series-5: #e87ba4; /* interior finishes - magenta */
-    --series-7: #4a3aa7; /* site/structure/exterior - violet */
+    --series-5: #00b300; /* interior finishes - green */
+    --series-7: #c62828; /* site/structure/exterior - red */
     --seq-100: #cde2fb; --seq-250: #86b6ef; --seq-400: #3987e5; --seq-450: #2a78d6; --seq-550: #1c5cab; --seq-650: #104281;
     --status-good: #0ca30c;
     --hover-row: #eef2f8;
@@ -53,6 +56,7 @@
     color-scheme: dark;
     --surface-1:      #1a1a19;
     --page-plane:     #0d0d0d;
+    --field-focus:    #24241f;
     --text-primary:   #ffffff;
     --text-secondary: #c3c2b7;
     --text-muted:     #898781;
@@ -63,8 +67,8 @@
     --series-2: #d95926;
     --series-3: #199e70;
     --series-4: #c98500;
-    --series-5: #d55181;
-    --series-7: #9085e9;
+    --series-5: #00c000;
+    --series-7: #c62828;
     --seq-450: #3987e5; --seq-550: #5598e7;
     --status-good: #0ca30c;
     --status-good-text: #0ca30c;
@@ -151,7 +155,8 @@
     font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 7px 10px;
     border: 1px solid var(--border); border-radius: 7px; background: var(--page-plane); color: var(--text-primary);
   }
-  .anchor-card input[type=date]:focus { outline: none; border-color: var(--series-1); background: #fff; }
+  .anchor-card input[type=date]:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .anchor-summary { font-size: 12.5px; color: var(--text-secondary); }
   .anchor-summary b { color: var(--text-primary); }
   .anchor-note { font-size: 12px; color: var(--text-muted); flex-basis: 100%; margin: 0; }
@@ -582,7 +587,8 @@
     width: 100%; max-width: 620px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px;
     padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--page-plane); color: var(--text-primary);
   }
-  .setup-input:focus { outline: none; border-color: var(--series-1); background: #fff; }
+  .setup-input:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .setup-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
   .connect-status { font-size: 13px; color: var(--text-secondary); }
   .connect-status.ok { color: var(--status-good); font-weight: 600; }
@@ -610,7 +616,8 @@
     width: 100%; font-family: inherit; font-size: 14px; padding: 10px 12px;
     border: 1px solid var(--border); border-radius: 8px; background: var(--page-plane); color: var(--text-primary);
   }
-  .lock-card input:focus { outline: none; border-color: var(--series-1); background: #fff; }
+  .lock-card input:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .lock-actions { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
   .app-layout { display: grid; grid-template-columns: 270px 1fr; gap: 18px; align-items: start; }
@@ -651,7 +658,8 @@
     width: 100%; font-family: inherit; font-size: 12.5px; padding: 6px 8px;
     border: 1px solid var(--border); border-radius: 6px; background: var(--page-plane); color: var(--text-primary);
   }
-  .contact-row input:focus { outline: none; border-color: var(--series-1); background: #fff; }
+  .contact-row input:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .contact-row .del-btn { padding: 4px; }
   .add-contact-btn, .add-row-btn, .add-col-btn { font-size: 12px; padding: 5px 9px; margin-top: 4px; }
 
@@ -679,8 +687,12 @@
     color: color-mix(in srgb, var(--cat-color) 68%, #000);
   }
   :root:has(.viz-root[data-theme="dark"]) .job-name-input { color: var(--cat-color); }
+  /* while you are actually typing in it, plain readable text beats the trade colour —
+     a dark red heading on a dark box is not something you can proofread. */
+  :root:has(.viz-root[data-theme="dark"]) .job-name-input:focus { color: var(--text-primary); }
   .job-name-input:hover { border-color: var(--baseline); }
-  .job-name-input:focus { outline: none; border-color: var(--series-1); background: #fff; color: var(--text-primary); }
+  .job-name-input:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .job-cell {
     width: 100%; font-family: inherit; font-size: 12.5px; padding: 5px 6px;
     border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-primary);
@@ -728,6 +740,40 @@
     .cell-x { opacity: .8; font-size: 17px; padding: 4px 7px; }
     .cell-wrap.has-val .job-cell { padding-right: 32px; }
   }
+
+  /* Press and hold a job to pick it up. The cell it came from fades, the one you are
+     over is outlined, and a small tag follows the pointer so it is obvious what is
+     in hand. */
+  .cell-wrap.dragging .job-cell { opacity: .3; }
+  .cell-wrap.drop-to {
+    outline: 2px dashed var(--series-1); outline-offset: -1px; border-radius: 6px;
+    background: color-mix(in srgb, var(--series-1) 12%, transparent);
+  }
+  .cell-wrap.drop-to.occupied { outline-style: solid; }
+  .drag-ghost {
+    position: fixed; z-index: 200; pointer-events: none;
+    padding: 5px 10px; border-radius: 7px; font-size: 12.5px; font-family: inherit;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--series-1); box-shadow: 0 8px 22px rgba(0,0,0,.35);
+    white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+  }
+  .drag-ghost .swap { color: var(--text-muted); font-size: 11.5px; margin-left: 7px; }
+  .drag-ghost .no { color: var(--danger-text); font-size: 11.5px; margin-left: 7px; }
+
+  /* Shift-drag draws this over the board; whatever it touches comes along. */
+  .marquee {
+    position: fixed; z-index: 190; pointer-events: none; border-radius: 4px;
+    border: 1px solid var(--series-1);
+    background: color-mix(in srgb, var(--series-1) 14%, transparent);
+  }
+  .cell-wrap.picked {
+    outline: 2px solid var(--series-1); outline-offset: -1px; border-radius: 6px;
+    background: color-mix(in srgb, var(--series-1) 10%, transparent);
+  }
+  .cell-wrap.no-drop {
+    outline: 2px solid var(--danger-text); outline-offset: -1px; border-radius: 6px;
+    background: color-mix(in srgb, var(--danger-text) 12%, transparent);
+  }
   .week-foot { margin-top: 8px; }
 
   .priority-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
@@ -737,7 +783,8 @@
     width: 100%; font-family: inherit; font-size: 12.5px; padding: 6px 8px;
     border: 1px solid var(--border); border-radius: 6px; background: var(--page-plane); color: var(--text-primary);
   }
-  .priority-row input:focus, .priority-row select:focus { outline: none; border-color: var(--series-1); background: #fff; }
+  .priority-row input:focus, .priority-row select:focus { outline: none; border-color: var(--series-1);
+    background: var(--field-focus); color: var(--text-primary); }
   .status-ready { color: var(--status-good-text); font-weight: 700; }
   .status-notready { color: var(--notready-text); font-weight: 700; }
 
@@ -1246,6 +1293,18 @@
      app are masked this way instead — nothing to save, nothing to prompt about. */
   input.masked { -webkit-text-security: disc; }
 
+  /* Every line that only explains what something is for is folded away behind this.
+     The board is what people came to look at; the explanation is there when it is
+     wanted and out of the way when it is not. */
+  .help-dots {
+    display: inline-flex; align-items: center; gap: 3px;
+    font: inherit; font-size: 11px; line-height: 1; letter-spacing: 2px;
+    padding: 3px 9px 4px; margin: 2px 0 6px 0;
+    background: transparent; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-muted); cursor: pointer;
+  }
+  .help-dots:hover { border-color: var(--baseline); color: var(--text-primary); }
+  .help-dots.on { border-color: var(--baseline); color: var(--text-primary); }
   .empty-note { color: var(--text-muted); font-size: 12.5px; padding: 10px 2px; }
   .info-note { color: var(--text-muted); font-size: 12px; margin-top: 10px; line-height: 1.5; }
   .addjob-body .info-note { max-width: 880px; }
@@ -1260,20 +1319,28 @@
 
   <div class="toolbar">
     <button class="primary" id="addPartnerBtn">+ Add Trade Partner</button>
-    <button id="undoBtn" class="history-btn" disabled="">↶ Undo</button>
-    <button id="redoBtn" class="history-btn" disabled="">↷ Redo</button>
-    <button id="saveAppBtn" class="save-btn" hidden="">⤓ Save My Tracker</button>
-    <button id="autoSaveBtn" hidden="" title="Pick a file once, then every change is written straight back to it.">⟳ Auto-Save: Off</button>
-    <span id="syncStatus" class="sync-status"><i class="sync-dot dot-ok"></i>All changes shared</span>
+    <button id="undoBtn" class="history-btn" disabled>↶ Undo</button>
+    <button id="redoBtn" class="history-btn" disabled>↷ Redo</button>
+    <button id="saveAppBtn" class="save-btn">⤓ Save My Tracker</button>
+    <button id="autoSaveBtn" hidden>⟳ Auto-Save: Off</button>
+    <span id="syncStatus" class="sync-status" hidden></span>
     <span id="saveStatus" class="save-status"></span>
-    <button id="themeBtn" class="theme-btn" title="Switch between light and dark">☀ Light</button>
+    <button id="themeBtn" class="theme-btn" title="Switch between light and dark">🌙 Dark</button>
   </div>
-  <p class="save-hint">Sharing is on — every edit saves by itself and reaches everyone else within a few seconds. There is nothing to save by hand.</p>
+  <p class="info-note" style="margin:0 0 10px 0">Press and hold a job on the board to pick
+     it up, then drag it to another day or column. Drop it on a day that already has
+     something and the two swap places. To move several at once, hold <b>Shift</b> and drag
+     a box over them — or <b>Ctrl-click</b> to pick them off one at a time — then press and
+     hold any one of them and the whole block moves together, keeping its shape. It will
+     not drop where it does not fit or where it would land on somebody else's job.
+     Press <b>Delete</b> with jobs picked and they come off the schedule. Escape puts
+     everything back, and Undo covers the lot.</p>
+  <p class="save-hint">Nothing saves automatically. Click <b>Save My Tracker</b> to download a fresh copy of this app with all your current data already inside it — open that downloaded file next time and everything is right where you left it. Always work from your newest download; older copies still hold older data.</p>
 
   <div class="card anchor-card">
     <label for="anchorDate">Week of</label>
-    <input type="date" id="anchorDate" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
-    <span class="anchor-summary" id="anchorSummary">Schedule covers <b>Aug 24, 2026</b> through <b>Sep 18, 2026</b></span>
+    <input type="date" id="anchorDate">
+    <span class="anchor-summary" id="anchorSummary"></span>
     <p class="anchor-note">Sets the Monday of “This Week”. Changing it re-dates all four weeks for every trade partner. Job assignments stay where they are — only the dates move.</p>
   </div>
 
@@ -1287,33 +1354,33 @@
   </div>
 
   <div id="paneSchedule">
-    <div class="watch-banner" id="watchBanner" hidden=""></div>
-    <div class="ask-bar" id="riAskBar" hidden=""></div>
+    <div class="watch-banner" id="watchBanner" hidden></div>
+    <div class="ask-bar" id="riAskBar" hidden></div>
 
     <div class="card addjob-card">
       <button class="addjob-toggle" id="addJobToggle" aria-expanded="false">
         <span>+ Add a job to the board</span><span class="chev">▾</span>
       </button>
-      <div class="addjob-body" id="addJobBody" hidden="">
+      <div class="addjob-body" id="addJobBody" hidden>
         <div class="addjob-grid">
           <label>Job
             <span class="cl-field">
-              <input id="ajJob" list="cp-dl-jobs" placeholder="pick one or type a new lot" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+              <input id="ajJob" list="cp-dl-jobs" placeholder="pick one or type a new lot">
               <button type="button" id="ajJobListBtn" title="See the active jobs, or retire a finished one">Job list</button>
             </span>
           </label>
-          <label>Assigned to<select id="ajPartner" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></select></label>
+          <label>Assigned to<select id="ajPartner"></select></label>
           <label>Construction leader
             <span class="cl-field">
-              <input id="ajLeader" list="cp-dl-leaders" placeholder="pick, or type a new one" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+              <input id="ajLeader" list="cp-dl-leaders" placeholder="pick, or type a new one">
               <button type="button" id="ajLeaderManageBtn" title="Add or remove leaders from this list">Edit list</button>
             </span>
           </label>
-          <label>Day<select id="ajDay" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></select></label>
-          <label class="wide">Notes (optional)<input id="ajNote" placeholder="anything you want beside the job — the trackers ignore it" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></label>
+          <label>Day<select id="ajDay"></select></label>
+          <label class="wide">Notes (optional)<input id="ajNote" placeholder="anything you want beside the job — the trackers ignore it"></label>
         </div>
-        <div class="cl-manage" id="ajJobManage" hidden=""></div>
-        <div class="cl-manage" id="ajLeaderManage" hidden=""></div>
+        <div class="cl-manage" id="ajJobManage" hidden></div>
+        <div class="cl-manage" id="ajLeaderManage" hidden></div>
         <div class="addjob-actions">
           <button class="primary" id="ajAddBtn">Add to the board</button>
           <span class="addjob-preview" id="ajPreview"></span>
@@ -1321,35 +1388,17 @@
         <p class="info-note" style="margin-top:8px">
           The job goes onto that trade partner's week exactly as previewed, and the name in
           the <b>Job</b> box joins the job list so every dropdown offers it from now on.
-          Only the part before the <b>|</b> counts as the job name — notes stay out of the
+          Only the part before the <b>-</b> counts as the job name — notes stay out of the
           list and never affect the Rough-In tab or the dropped-job alerts.
-        </p>
-      </div>
-    </div>
-    <div class="card addjob-card">
-      <button class="addjob-toggle" id="tcToggle" aria-expanded="false">
-        <span>Trade colors</span><span class="chev">▾</span>
-      </button>
-      <div class="addjob-body" id="tcBody" hidden="">
-        <div class="tc-grid" id="tcGrid"></div>
-        <div class="tc-actions">
-          <button id="tcResetAll">Put all six back to the built-in colors</button>
-        </div>
-        <p class="info-note" style="margin-top:10px">
-          A trade’s color runs through the whole tracker — the legend, the tint behind each
-          week, the Rough-In headings, the Calendar Quick View blocks and the picture you text
-          or email out. Your color is used in both light and dark mode, so pick one that reads
-          on a white page and a black one. <b>Reset</b> puts a single trade back to the
-          built-in shade.
         </p>
       </div>
     </div>
 
     <div class="card addjob-card">
       <button class="addjob-toggle" id="jcToggle" aria-expanded="false">
-        <span>Clean up the job list <span class="jc-badge" id="jcBadge">the list is empty</span></span><span class="chev">▾</span>
+        <span>Clean up the job list <span class="jc-badge" id="jcBadge"></span></span><span class="chev">▾</span>
       </button>
-      <div class="addjob-body" id="jcBody" hidden="">
+      <div class="addjob-body" id="jcBody" hidden>
         <p class="jc-sum" id="jcSum"></p>
         <div class="jc-actions">
           <button class="primary" id="jcApply">Apply</button>
@@ -1377,10 +1426,10 @@
     <div class="app-layout">
       <div class="sidebar card">
         <button id="partnerToggle" class="partner-toggle" aria-expanded="false">
-          <span id="partnerToggleName">1. Holberts Grading</span><span class="chev">▾</span>
+          <span id="partnerToggleName">Trade Partners</span><span class="chev">▾</span>
         </button>
         <div class="sidebar-body" id="sidebarBody">
-          <input type="text" id="partnerSearch" placeholder="Search trade partners…" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+          <input type="text" id="partnerSearch" placeholder="Search trade partners…">
           <p class="sidebar-order-note">Listed in workbook order (construction sequence).</p>
           <div class="cat-legend" id="catLegend"></div>
           <div id="partnerList"></div>
@@ -1390,14 +1439,14 @@
     </div>
   </div>
 
-  <div class="dur-pop" id="durPop" hidden=""></div>
+  <div class="dur-pop" id="durPop" hidden></div>
 
-  <div id="paneRough" hidden="">
-    <div class="ask-bar" id="riLockBar" hidden=""></div>
-    <div class="newlot-banner" id="riNewLots" hidden=""></div>
+  <div id="paneRough" hidden>
+    <div class="ask-bar" id="riLockBar" hidden></div>
+    <div class="newlot-banner" id="riNewLots" hidden></div>
     <div class="link-summary" id="linkSummary"></div>
 
-    <div class="card" id="linkCard" hidden="">
+    <div class="card" id="linkCard" hidden>
       <div class="ri-head-row">
         <h2 style="margin:0;">Which lot is which</h2>
         <button id="linkCloseBtn">Done</button>
@@ -1413,7 +1462,7 @@
       </div>
     </div>
 
-    <div class="ri-conflict" id="riConflict" hidden="">
+    <div class="ri-conflict" id="riConflict" hidden>
       <div class="ri-conflict-head">
         <span class="ri-conflict-icon">!</span>
         <span id="riConflictSummary"></span>
@@ -1429,7 +1478,7 @@
         <h2 style="margin:0;">Lot Schedule</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="primary" id="riAddBtn">+ Add Lot</button>
-          <button id="riToggleCompletedBtn">− Hide Completed (0)</button>
+          <button id="riToggleCompletedBtn"></button>
           <button id="riCsvBtn">Export CSV</button>
         </div>
       </div>
@@ -1513,11 +1562,11 @@
   <datalist id="cp-dl-leaders"></datalist>
 
 
-  <div id="paneJob" hidden="">
+  <div id="paneJob" hidden>
     <div class="card">
       <div class="jv-pick">
         <label>Which job
-          <select id="jvJob" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></select>
+          <select id="jvJob"></select>
         </label>
         <span class="jv-count" id="jvCount"></span>
       </div>
@@ -1527,13 +1576,13 @@
         scheduled — that is where the schedule is loose.
       </p>
     </div>
-    <div class="card" id="jvSend" hidden="">
+    <div class="card" id="jvSend" hidden>
       <div class="jv-send-head">
         <h2>Send this job's calendar</h2>
         <span class="jv-who" id="jvWho"></span>
       </div>
       <div class="jv-send-row">
-        <label>To <input type="text" id="jvTo" placeholder="name@brownhavenhomes.com" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></label>
+        <label>To <input type="text" id="jvTo" placeholder="name@brownhavenhomes.com"></label>
         <button class="primary" id="jvEmailBtn">✉ Email it</button>
         <button id="jvTextBtn">💬 Text it</button>
         <button id="jvCopyBtn">Copy the picture</button>
@@ -1556,12 +1605,12 @@
       </div>
       <div class="jv-send-row">
         <button class="primary" id="jvAllBtn">Start</button>
-        <button id="jvAllStopBtn" hidden="">Stop</button>
+        <button id="jvAllStopBtn" hidden>Stop</button>
         <span class="grow"></span>
         <button id="jvFolderBtn" title="Write the drafts into a folder instead of downloading them">📁 Drafts folder…</button>
         <span class="jv-who" id="jvFolderNote"></span>
       </div>
-      <div class="jv-queue" id="jvQueue" hidden=""></div>
+      <div class="jv-queue" id="jvQueue" hidden></div>
       <p class="info-note">One email per leader, with every house they are running in it —
         each house its own calendar, under its own heading. Your mail program can only be
         handed one message at a time, so each leader waits for you to press the button.
@@ -1573,9 +1622,9 @@
     <div id="jvBody"></div>
   </div>
 
-  <div id="paneClose" hidden="">
+  <div id="paneClose" hidden>
     <div class="co-note" id="coNote"></div>
-    <div class="ask-bar" id="coAskBar" hidden=""></div>
+    <div class="ask-bar" id="coAskBar" hidden></div>
     <div class="co-stats" id="coStats"></div>
     <div class="co-bar">
       <button id="coGraderBtn">Which trades count as grading</button>
@@ -1594,11 +1643,11 @@
     </p>
   </div>
 
-  <div id="paneExport" hidden="">
+  <div id="paneExport" hidden>
     <div class="card">
       <h2>Send a Trade Partner Their Schedule</h2>
       <div class="export-controls">
-        <select id="exportPartnerSelect" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></select>
+        <select id="exportPartnerSelect"></select>
         <span class="send-to" id="sendTo"></span>
       </div>
 
@@ -1617,14 +1666,14 @@
       </div>
       <label class="txt-weeks" id="txtWeeksRow">
         <span>Picture in a text shows</span>
-        <select id="txtWeeksSel" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+        <select id="txtWeeksSel">
           <option value="1">this week only</option>
           <option value="2">this week + next</option>
-          <option value="4" selected="">all four weeks</option>
+          <option value="4" selected>all four weeks</option>
         </select>
         <span>at</span>
-        <select id="txtResSel" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
-          <option value="3" selected="">standard sharpness</option>
+        <select id="txtResSel">
+          <option value="3" selected>standard sharpness</option>
           <option value="4">high</option>
           <option value="5">maximum</option>
         </select>
@@ -1638,7 +1687,7 @@
           time — click <b>Keep</b>.</small></span>
       </label>
       <p class="send-status" id="sendStatus"></p>
-      <div class="send-next" id="sendNext" hidden=""></div>
+      <div class="send-next" id="sendNext" hidden></div>
       <p class="info-note" style="margin-top:4px" id="sendHowNote"></p>
     </div>
 
@@ -1657,7 +1706,7 @@
     </div>
   </div>
 
-  <div id="siteGate" class="lock-screen" hidden="">
+  <div id="siteGate" class="lock-screen" hidden>
     <div class="lock-card">
       <div class="lock-ico">🔐</div>
       <h2>Asheville Critical Path</h2>
@@ -1673,12 +1722,12 @@
     </div>
   </div>
 
-  <div id="lockScreen" class="lock-screen" hidden="">
+  <div id="lockScreen" class="lock-screen" hidden>
     <div class="lock-card">
       <div class="lock-ico">🔒</div>
       <h2>This schedule is encrypted</h2>
       <p>Enter the passphrase your team uses. It is never sent anywhere — it only unlocks the schedule on this computer.</p>
-      <input type="text" class="masked" id="unlockInput" placeholder="Passphrase" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+      <input type="text" class="masked" id="unlockInput" placeholder="Passphrase" autocomplete="off">
       <div class="lock-actions">
         <button class="primary" id="unlockBtn">Unlock</button>
         <span id="unlockStatus" class="connect-status"></span>
@@ -1686,31 +1735,31 @@
     </div>
   </div>
 
-  <div id="paneSharing" hidden="">
-    <div class="card" id="sharingConnected">
+  <div id="paneSharing" hidden>
+    <div class="card" id="sharingConnected" hidden>
       <h2>Sharing Is On</h2>
       <p class="connected-line"><span class="sync-dot dot-ok"></span> This tracker is connected to your shared schedule. Everyone using it sees the same thing.</p>
-      <p class="info-note" id="connectedWhere">Storing the schedule at https://xyfpwuubawkjoztpargw.supabase.co</p>
+      <p class="info-note" id="connectedWhere"></p>
       <div class="setup-actions">
         <button class="primary" id="downloadConnectedBtn">⤓ Download Copy to Send Your Team</button>
         <button id="disconnectBtn" class="danger-ghost">Turn Sharing Off</button>
       </div>
       <p class="info-note">Send that downloaded file to anyone who needs to edit the schedule — by email, Teams, or SharePoint. When they open it, they're looking at the same live schedule you are.</p>
-      <p class="info-note" id="hostedNote" hidden=""></p>
+      <p class="info-note" id="hostedNote" hidden></p>
     </div>
 
-    <div class="card" id="gateCard">
+    <div class="card" id="gateCard" hidden>
       <h2>Team Password</h2>
       <p class="setup-intro">For a copy you publish at a web address. The connection is
         written into the page <b>encrypted</b>, so the page alone is useless — whoever opens
         it types the team password once and their browser remembers it.</p>
       <label class="setup-label" for="gateNew">Team password</label>
-      <input type="text" id="gateNew" class="setup-input masked" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+      <input type="text" id="gateNew" class="setup-input masked" autocomplete="off">
       <label class="setup-label" for="gateNew2">Type it again</label>
-      <input type="text" id="gateNew2" class="setup-input masked" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+      <input type="text" id="gateNew2" class="setup-input masked" autocomplete="off">
       <div class="setup-actions">
         <button class="primary" id="gateMakeBtn">⤓ Download Locked Copy</button>
-        <span id="gateMakeStatus" class="connect-status">Locking…</span>
+        <span id="gateMakeStatus" class="connect-status"></span>
       </div>
       <p class="info-note">Rename the download to <b>index.html</b>, put it where the page is
         published, and send the team the link and the password — nothing else. Keep the
@@ -1718,20 +1767,20 @@
         locked copy from here.</p>
     </div>
 
-    <div class="card" id="encryptionCard">
+    <div class="card" id="encryptionCard" hidden>
       <h2>Encryption</h2>
-      <p class="enc-state" id="encState"><span class="pill off">OFF</span> The schedule is stored as plain text.</p>
-      <div class="setup-actions" id="encOffActions">
+      <p class="enc-state" id="encState"></p>
+      <div class="setup-actions" id="encOffActions" hidden>
         <button class="primary" id="encTurnOnBtn">Turn On Encryption</button>
       </div>
-      <div class="setup-actions" id="encOnActions" hidden="">
+      <div class="setup-actions" id="encOnActions" hidden>
         <button id="encChangeBtn">Change Passphrase</button>
         <button id="encOffBtn" class="danger-ghost">Turn Off Encryption</button>
       </div>
-      <p class="info-note" id="encNote">Turning this on scrambles every schedule entry and contact before it is stored, using a passphrase you choose. Nobody can read the data without it — including us, and including anyone who gets hold of the app file alone.</p>
+      <p class="info-note" id="encNote"></p>
     </div>
 
-    <div class="card" id="sharingSetup" hidden="">
+    <div class="card" id="sharingSetup">
       <h2>Set Up Sharing</h2>
       <p class="setup-intro">Right now this tracker is just yours. Three steps and everyone on your team edits one shared schedule together.</p>
 
@@ -1768,9 +1817,9 @@ create policy "app access" on critical_path
           <h3>Copy your two values in here</h3>
           <p>In the left menu click <b>Project Settings</b> → <b>API</b>. Copy the two values it shows you into the boxes below, then click Connect.</p>
           <label class="setup-label" for="cfgUrl">Project URL</label>
-          <input type="text" id="cfgUrl" class="setup-input" placeholder="https://something.supabase.co" autocomplete="off" spellcheck="false" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+          <input type="text" id="cfgUrl" class="setup-input" placeholder="https://something.supabase.co" autocomplete="off" spellcheck="false">
           <label class="setup-label" for="cfgKey">Publishable key (labelled <b>anon public</b> on older projects) — never the secret one</label>
-          <input type="text" id="cfgKey" class="setup-input" placeholder="sb_publishable_… or eyJhbGciOi…" autocomplete="off" spellcheck="false" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+          <input type="text" id="cfgKey" class="setup-input" placeholder="sb_publishable_… or eyJhbGciOi…" autocomplete="off" spellcheck="false">
           <div class="setup-actions">
             <button class="primary" id="connectBtn">Connect</button>
             <span id="connectStatus" class="connect-status"></span>
@@ -1786,12 +1835,12 @@ create policy "app access" on critical_path
 <!-- All tracker data lives here. "Save My Tracker" rewrites this block with the current
      data and re-serializes the page, so the downloaded file is a working copy of the app
      with the data already in it. -->
-<script type="application/json" id="appData">{"version":3,"anchorDate":"2026-08-24","partners":{},"roster":{},"watchOn":true,"daysAskOn":true,"catColors":{},"closeOuts":{},"jobSeen":{},"coGraders":null,"roughRows":[],"riIgnored":[],"clAdded":[],"clHidden":[],"jobRetired":["test","Test 2"]}</script>
+<script type="application/json" id="appData">{"version":3,"anchorDate":"2026-08-24","partners":{"holberts-grading":{"id":"holberts-grading","name":"Holberts Grading","sheet":"Holberts Grading","order":1,"category":"site","type":"calendar","tpContacts":[{"name":"John","email":"","phone":"828-817-5220"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Septics"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Septics"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"blue-ridge-contracting":{"id":"blue-ridge-contracting","name":"Blue Ridge Contracting","sheet":"Blue Ridge Contracting","order":2,"category":"site","type":"calendar","tpContacts":[{"name":"Brandon Worley","email":"","phone":"828-400-5194"},{"name":"Garrett Holland","email":"","phone":"828-550-0523"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Starts","Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Starts","Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job Starts","Job 1","Job 2","Septics"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Job Starts","Job 1","Job 2","Septics"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"mandujano-concrete-and-masonry":{"id":"mandujano-concrete-and-masonry","name":"Mandujano Concrete and Masonry","sheet":"Mandujano","order":3,"category":"site","type":"calendar","tpContacts":[{"name":"George Tinajero","email":"","phone":"828-541-3580"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3","Job 4"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3","Job 4"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"top-level-masonry":{"id":"top-level-masonry","name":"Top Level Masonry","sheet":"Top Level","order":4,"category":"site","type":"calendar","tpContacts":[{"name":"Juan Cuba","email":"toplevelmasonry83@gmail.com","phone":"(828) 747-5355"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"carolina-sealers":{"id":"carolina-sealers","name":"Carolina Sealers","sheet":"Carolina sealers LLC","order":5,"category":"site","type":"calendar","tpContacts":[{"name":"Heath","email":"Carolinasealersllc@gmail.com","phone":"828-550-6001"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"ramero-martinez":{"id":"ramero-martinez","name":"Ramero Martinez","sheet":"Ramero Martinez","order":6,"category":"framing","type":"calendar","tpContacts":[{"name":"Ramero Martinez","email":"","phone":"828-275-5727"},{"name":"Julio Martinez","email":"","phone":"828-846-9852"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"nolasco":{"id":"nolasco","name":"Nolasco","sheet":"Nolasco Framing","order":7,"category":"framing","type":"calendar","tpContacts":[{"name":"Nolasco","email":"","phone":"828 674-2891"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"santos-framing":{"id":"santos-framing","name":"Santos Framing","sheet":"Santos","order":8,"category":"framing","type":"calendar","tpContacts":[{"name":"Alex","email":"","phone":"8648049253"},{"name":"Diego","phone":"8642664785","email":""}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"yoders":{"id":"yoders","name":"Yoders","sheet":"Yoders","order":9,"category":"interior","type":"calendar","tpContacts":[],"clContacts":[{"name":"Windows/Doors","phone":"Siding","email":""}],"weeks":[{"label":"This Week","jobNames":["Trusses","Framing Drops","Pick up","Windows/Doors","Siding"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","","",""]}]},{"label":"Next Week","jobNames":["Trusses","Framing Drops","Pick up","Windows/Doors","Siding"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","","",""]}]},{"label":"3rd Week","jobNames":["Trusses","Framing Drops","Pick up","Windows/Doors","Siding"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","",""]}]},{"label":"4th Week","jobNames":["Trusses","Framing Drops","Pick up","Windows/Doors","Siding"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","",""]}]}]},"ncpd":{"id":"ncpd","name":"NCPD","sheet":"NCPD","order":10,"category":"plumbing","type":"calendar","tpContacts":[{"name":"Igor Fabinchec","email":"","phone":"828-333-2862"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"premiere-plumbing":{"id":"premiere-plumbing","name":"Premiere Plumbing","sheet":"Premiere Plumbing","order":11,"category":"plumbing","type":"calendar","tpContacts":[{"name":"Albert","email":"","phone":"828-620-2790"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"cool-cats":{"id":"cool-cats","name":"Cool Cats","sheet":"COOL CATZ","order":12,"category":"hvac","type":"calendar","tpContacts":[{"name":"Ruvim Strilets","email":"","phone":"828-575-3392"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Rough","Trimout"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Rough","Trimout","Upcoming"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"ac-heating-and-air":{"id":"ac-heating-and-air","name":"AC Heating and Air","sheet":"AC Heating and Air","order":13,"category":"hvac","type":"calendar","tpContacts":[{"name":"Steve Silver","email":"","phone":"828-460-4585"},{"name":"Ethan H","email":"","phone":"8284606324"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"1st-choice-service-group":{"id":"1st-choice-service-group","name":"1st Choice Service Group","sheet":"1st Choice Service Group","order":14,"category":"hvac","type":"calendar","tpContacts":[{"name":"Chris Cornett","email":"","phone":"828-593-7174"},{"name":"Kayleigh Kaplan","email":"customercare@1stchoiceservicegroup.com","phone":"828-460-0257"},{"name":"Jared Wood","email":"","phone":"828-803-7985"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["HVAC Rough","Elec. Rough","HVAC Final","Elec. Final","Misc","TPole"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","","","",""]}]},{"label":"Next Week","jobNames":["HVAC Rough","Elec. Rough","HVAC Final","Elec. Final","Misc","TPole"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","","","",""]}]},{"label":"3rd Week","jobNames":["HVAC Rough","Elec. Rough","HVAC Final","Elec. Final","Misc","TPole"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","","",""]}]},{"label":"4th Week","jobNames":["HVAC Rough","Elec. Rough","HVAC Final","Elec. Final","Misc","TPole"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","","",""]}]}]},"southern-electrical":{"id":"southern-electrical","name":"Southern Electrical","sheet":"Southern Electrical ","order":15,"category":"electrical","type":"calendar","tpContacts":[{"name":"Darrell Willits","email":"","phone":"828-691-5478"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","",""]}]},{"label":"Next Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","",""]}]},{"label":"3rd Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"sls-enterprises":{"id":"sls-enterprises","name":"SLS Enterprises","sheet":"SLS Enterprises","order":16,"category":"electrical","type":"calendar","tpContacts":[{"name":"Keith Seshion","email":"","phone":"828-424-4630"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","",""]}]},{"label":"Next Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","",""]}]},{"label":"3rd Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Rough","Final","T-Pole","Misc."],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"mountain-view-fireplace":{"id":"mountain-view-fireplace","name":"Mountain View Fireplace","sheet":"Mountain View Fireplace","order":17,"category":"site","type":"calendar","tpContacts":[{"name":"Brian Clark","email":"","phone":"706-658-7214"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"kr-construction":{"id":"kr-construction","name":"KR Construction","sheet":"KR Construction","order":18,"category":"site","type":"calendar","tpContacts":[{"name":"Kris Rathbone","email":"","phone":"828-776-5611"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"insulation-by-cohens":{"id":"insulation-by-cohens","name":"Insulation by Cohens","sheet":"Insulation by Cohens","order":19,"category":"site","type":"calendar","tpContacts":[{"name":"Jeff","email":"","phone":"980-241-7221"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Floors","Walls","Ceilings","Misc"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","",""]}]},{"label":"Next Week","jobNames":["Floors","Walls","Ceilings","Misc"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","",""]}]},{"label":"3rd Week","jobNames":["Floors","Walls","Ceilings","Misc"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Floors","Walls","Ceilings","Misc"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"allied-insulation":{"id":"allied-insulation","name":"Allied Insulation","sheet":"Allied Insulation","order":20,"category":"site","type":"calendar","tpContacts":[{"name":"Kevin Reising","email":"","phone":"828-974-1601"},{"name":"Butch Stanley","email":"","phone":"828-606-3416"},{"name":"Harry","phone":"8287859755","email":""}],"clContacts":[{"name":"Harry","phone":"","email":"Bo Nolan"},{"name":"828-785-9755","phone":"","email":"Mason Fisher:"}],"weeks":[{"label":"This Week","jobNames":["Mirrors/ Shelves","Insulation","Shower Doors","Gutters"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","",""]}]},{"label":"Next Week","jobNames":["Mirrors/ Shelves","Insulation","Shower Doors","Gutters"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","",""]}]},{"label":"3rd Week","jobNames":["Mirrors/ Shelves","Insulation","Shower Doors","Gutters"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Mirrors/ Shelves","Insulation","Shower Doors","Gutters"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"simco":{"id":"simco","name":"SIMCO","sheet":"SIMCO","order":21,"category":"site","type":"calendar","tpContacts":[{"name":"Chase Simmons","email":"ChaseS@simcobp.com","phone":"336-803-1055"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Mirrors/ Shelves","Shower Doors","Wire Shelving"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Mirrors/ Shelves","Shower Doors","Wire Shelving"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Mirrors/ Shelves","Shower Doors"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Mirrors/ Shelves","Shower Doors"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"juan-drywall":{"id":"juan-drywall","name":"Juan Drywall","sheet":"Juan Drywall","order":22,"category":"interior","type":"calendar","tpContacts":[{"name":"Juan Hernandez","phone":"8646122457","email":""}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Sheetrock","Sheetrock crew 2","Sheetrock crew 3","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","","","",""]}]},{"label":"Next Week","jobNames":["Sheetrock","Sheetrock crew 2","Sheetrock crew 3","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","","","",""]}]},{"label":"3rd Week","jobNames":["Sheetrock","Sheetrock crew 2","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Sheetrock","Sheetrock crew 2","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"santos-drywall":{"id":"santos-drywall","name":"Santos Drywall","sheet":"Santos Drywall","order":23,"category":"interior","type":"calendar","tpContacts":[{"name":"Alex","email":"","phone":"864-804-9253"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Sheetrock","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Sheetrock","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Sheetrock","Sheetrock 2","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Sheetrock","Sheetrock 2","Interior Paint","Exterior Paint"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"quality-stone":{"id":"quality-stone","name":"Quality Stone","sheet":"Quality Stone","order":24,"category":"site","type":"calendar","tpContacts":[{"name":"Juan Hernandez","email":"","phone":"864-612-2457"},{"name":"Ivan Hernandez","email":"","phone":"864-978-8500"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","",""]}]}]},"friendly-painting":{"id":"friendly-painting","name":"Friendly Painting","sheet":"Friendly Painting","order":25,"category":"interior","type":"calendar","tpContacts":[{"name":"Zack","email":"","phone":"8282169218"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"top-level-stone":{"id":"top-level-stone","name":"Top Level Stone","sheet":"Top Level Stone","order":26,"category":"site","type":"calendar","tpContacts":[{"name":"Juan ","phone":"8287475355","email":""}],"clContacts":[{"name":"(828) 755-5703","phone":"","email":""},{"name":"(864) 828-0218","phone":"","email":""},{"name":"(828) 365-4052","phone":"","email":""},{"name":"(828) 502-9965","phone":"","email":""},{"name":"(828) 713-2109","phone":"","email":""},{"name":"(828) 447-6353","phone":"","email":""}],"weeks":[{"label":"This Week","jobNames":["Job 1"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":[""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":[""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":[""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":[""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":[""]}]},{"label":"Next Week","jobNames":["Job 1"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":[""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":[""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":[""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":[""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":[""]}]},{"label":"3rd Week","jobNames":["Job 1"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":[""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":[""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":[""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":[""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":[""]}]},{"label":"4th Week","jobNames":["Job 1"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":[""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":[""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":[""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":[""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":[""]}]}]},"yoders-cabinets":{"id":"yoders-cabinets","name":"Yoders Cabinets","sheet":"Yoders Cabinets","order":27,"category":"interior","type":"calendar","tpContacts":[{"name":"Darin Miller","email":"Darin.miller@goyoders.com","phone":"706-498-4022"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Cabinets","Punch"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Cabinets","Punch"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Cabinets","Punch","Upcoming Jobs","Phase","Measure","Install Date"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","","",""]}]},{"label":"4th Week","jobNames":["Cabinets","Punch","Upcoming Jobs","Phase","Measure","Install Date"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","","",""]}]}]},"yoders-appliances":{"id":"yoders-appliances","name":"Yoders Appliances","sheet":"Yoders Appliances","order":28,"category":"interior","type":"calendar","tpContacts":[{"name":"Kevin","email":"oconeehomes@gmail.com","phone":"1 864 780 1952"},{"name":"Priscilla","email":"1 864 209 9941","phone":""}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","",""]}]}]},"michael-s-and-company":{"id":"michael-s-and-company","name":"Michael's and Company","sheet":"Michaels and Company","order":29,"category":"interior","type":"calendar","tpContacts":[{"name":"Jay Ingles","email":"","phone":"864-630-5651"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","",""]}]}]},"leicester-flooring":{"id":"leicester-flooring","name":"Leicester Flooring","sheet":"Leicester Flooring","order":30,"category":"interior","type":"calendar","tpContacts":[{"name":"Ariana","email":"Ariana@Leicestercarpet.com","phone":"28-699-0275"},{"name":"Sharon","email":"","phone":"828-768-3502"}],"clContacts":[],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["","",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2","Job 3"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["","",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["","",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["","",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["","",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["","",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Job 3","Upcoming Flooring","Upcoming Tile"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","","",""]}]}]},"curtis-trim":{"id":"curtis-trim","name":"Curtis(Trim)","sheet":"Curtis(Trim)","order":31,"category":"interior","type":"calendar","tpContacts":[{"name":"Curtis Harrelson","email":"Crowncarpentry@hotmail.com","phone":"864-505-5258"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Chris Kane","phone":"","email":""},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"","email":""},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"bobby-trim":{"id":"bobby-trim","name":"Bobby trim","sheet":"Bobby trim","order":32,"category":"interior","type":"calendar","tpContacts":[{"name":"Bobby","email":"","phone":"828-243-6609"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Upcoming Job","Phase"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Upcoming Job","Phase"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"gama":{"id":"gama","name":"Gama","sheet":"Gama","order":33,"category":"interior","type":"calendar","tpContacts":[{"name":"David Neese","email":"","phone":"631-433-3641"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2","Upcoming Job","Phase"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["","","",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2","Upcoming Job","Phase"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["","","",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["","","",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["","","",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["","","",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["","","",""]}]}]},"precision-cleaning-services":{"id":"precision-cleaning-services","name":"Precision Cleaning Services","sheet":"Precision Cleaning Services","order":34,"category":"interior","type":"calendar","tpContacts":[{"name":"Sid","email":"","phone":"828-776-4261"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"weeks":[{"label":"This Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-24T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-08-25T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-08-26T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-08-27T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-08-28T00:00:00","jobs":["",""]}]},{"label":"Next Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-08-31T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-01T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-02T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-03T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-04T00:00:00","jobs":["",""]}]},{"label":"3rd Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-07T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-08T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-09T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-10T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-11T00:00:00","jobs":["",""]}]},{"label":"4th Week","jobNames":["Job 1","Job 2"],"days":[{"day":"Mon","date":"2026-09-14T00:00:00","jobs":["",""]},{"day":"Tue","date":"2026-09-15T00:00:00","jobs":["",""]},{"day":"Wed","date":"2026-09-16T00:00:00","jobs":["",""]},{"day":"Thu","date":"2026-09-17T00:00:00","jobs":["",""]},{"day":"Fri","date":"2026-09-18T00:00:00","jobs":["",""]}]}]},"clearwater-well-drilling":{"id":"clearwater-well-drilling","name":"Clearwater Well Drilling","sheet":"Clearwater Well Drilling","order":35,"category":"site","type":"priority_list","tpContacts":[{"name":"Jeff Moore","email":"","phone":"828-776-6526"},{"name":"Mike Moore","email":"Mmoore33@yahoo.com","phone":"828-429-4457"}],"clContacts":[{"name":"Bo Nolan","phone":"(828) 755-5703","email":"bnolan@brownhavenhomes.com"},{"name":"Matt Bair","phone":"(864) 828-0218","email":"mbair@brownhavenhomes.com"},{"name":"Mason Fisher","phone":"(828) 365-4052","email":"mfisher@brownhavenhomes.com"},{"name":"Sam Buff","phone":"(828) 502-9965","email":"sbuff@brownhavenhomes.com"},{"name":"Chris Kane","phone":"(828) 713-2109","email":"Ckane@brownhavenhomes.com"},{"name":"Tanner Peyton","phone":"(828) 447-6353","email":"tpeyton@brownhavenhomes.com"}],"groups":[{"title":"Wells","rows":[{"job":"","location":"","status":"","leader":""},{"job":"","location":"","status":"","leader":""},{"job":"","location":"","status":"","leader":""},{"job":"","location":"","status":"","leader":""}]},{"title":"Water Lines / Pumps","rows":[{"job":"","location":"","status":"","leader":""}]}]}},"roster":{},"watchOn":true,"roughRows":[],"riIgnored":[],"clAdded":[],"clHidden":[],"jobRetired":[]}</script>
 
-<script id="appConfig">window.CRITICAL_PATH_CONFIG = {"supabaseUrl":"","supabaseKey":""};</script>
+<script id="appConfig">window.CRITICAL_PATH_CONFIG = {"supabaseUrl":"https://xyfpwuubawkjoztpargw.supabase.co","supabaseKey":"sb_publishable_rZ-bQRNEQtpCBn8Un98F_w_XK7s_fNf"};</script>
 <!-- Set when the page is locked with a team password. It holds the connection
      details encrypted with that password — useless without it. -->
-<script id="appLock">window.CRITICAL_PATH_LOCK = {"v":1,"salt":"ZX2buTlbCViVRqXIu7SFCg==","iv":"o1RsphPkWP14Eej/","ct":"yMAJ2QPbbHwacMelESZ72aO0dn34jeqkf5LYxv52vSpOQpy9G2E1D78V1dT7/igIVDhvyWrqvN3tkyghIz6zAREbcFgmjuUSEvtc+cTiLTy76uKjfrGhpNUYlE7lOqxElkVzdPkGU9dIj3KMzRBFF2L5NtX0CCfjnU8wlYaWgE5yrFCAaxGKBro="};</script>
+<script id="appLock">window.CRITICAL_PATH_LOCK = null;</script>
 
 <script>
 (function(){
@@ -1832,7 +1881,7 @@ create policy "app access" on critical_path
   // Fixed light-mode hues for the exported image — a trade partner should get the same
   // picture whether the sender is working in light or dark.
   const PNG_COLORS = { framing:'#2a78d6', plumbing:'#eb6834', hvac:'#1baf7a',
-                       electrical:'#c98500', interior:'#e87ba4', site:'#4a3aa7' };
+                       electrical:'#c98500', interior:'#00b300', site:'#c62828' };
   // An edited trade colour follows the job onto the picture too, but still without
   // reference to the theme — the same house should look the same to whoever gets it.
   function catColorPNG(cat){ return CAT_COLORS[cat] || PNG_COLORS[cat] || '#2a78d6'; }
@@ -1871,10 +1920,15 @@ create policy "app access" on critical_path
       else root.style.removeProperty(v);      // back to the stylesheet's own value
     });
   }
+  // These two were given fixed colours, so anything an older file saved for them is
+  // ignored — there is no colour editor any more to clear it from.
+  const CAT_FIXED = { site: 1, interior: 1 };
+
   function loadCatColors(src){
     CAT_COLORS = {};
     if(src && typeof src === 'object'){
       CATEGORY_ORDER.forEach(cat => {
+        if(CAT_FIXED[cat]) return;
         const h = normHex(src[cat]);
         if(h && h !== catDefault(cat)) CAT_COLORS[cat] = h;
       });
@@ -2460,6 +2514,7 @@ create policy "app access" on critical_path
     renderMain();
     const pane = document.getElementById('paneExport');
     if(pane && !pane.hidden) renderExportTab();
+    if(typeof selPaint === 'function') selPaint();   // the board was rebuilt under it
   }
 
   async function cloudInit(){
@@ -2849,7 +2904,7 @@ create policy "app access" on critical_path
             const cl = jobLeader(raw);
             if(cl && !/\([^)]*\)/.test(jobText(raw))){
               const note = jobNote(raw);
-              const fixed = jobWithLeader(raw) + (note ? ` | ${note}` : '');
+              const fixed = jobWithLeader(raw) + (note ? jobSep(raw) + note : '');
               if(fixed !== raw){
                 inp.value = fixed;
                 inp.title = fixed;
@@ -3535,8 +3590,17 @@ create policy "app access" on critical_path
   // Everything that has to recognise the job (the handoff watch, the rough-in link)
   // reads only the part before it, so notes can be edited freely without the trackers
   // thinking the job was renamed or dropped.
-  const NOTE_SPLIT = /\s+(?:\||\/\/|—|--)\s+/;
+  // What separates a job name from a note typed after it. A single hyphen is the one
+  // people reach for, so it counts too — but only with a space either side, so a lot
+  // called "Reems Creek-3" is still one name.
+  const NOTE_SPLIT = /\s+(?:\||\/\/|—|-{1,2})\s+/;
   function jobText(s){ return String(s == null ? '' : s).split(NOTE_SPLIT)[0].trim(); }
+  // Whatever was typed to open the note — a hyphen, a pipe, a double slash — is kept as
+  // it was, rather than being quietly rewritten to somebody else's preference.
+  function jobSep(s){
+    const m = String(s == null ? '' : s).match(NOTE_SPLIT);
+    return m ? m[0] : ' - ';
+  }
   function jobNote(s){
     const parts = String(s == null ? '' : s).split(NOTE_SPLIT);
     return parts.length > 1 ? parts.slice(1).join(' | ').trim() : '';
@@ -4094,7 +4158,7 @@ create policy "app access" on critical_path
     const tag = document.getElementById('ajLeader').value;
     const note = document.getElementById('ajNote').value.trim();
     if(!job) return '';
-    return job + (tag ? ` (${tag})` : '') + (note ? ` | ${note}` : '');
+    return job + (tag ? ` (${tag})` : '') + (note ? ` - ${note}` : '');
   }
 
   function ajUpdatePreview(msg, bad){
@@ -5371,10 +5435,6 @@ create policy "app access" on critical_path
     document.getElementById('jcTable').innerHTML = '';
     document.getElementById('jcStatus').textContent = '';
     document.getElementById('jcSum').innerHTML = '';
-    // the colour card opens closed in a fresh copy, and its rows are rebuilt from data
-    document.getElementById('tcBody').hidden = true;
-    document.getElementById('tcToggle').setAttribute('aria-expanded', 'false');
-    document.getElementById('tcGrid').innerHTML = '';
     // the question is about a cell that no longer has focus in a fresh copy
     durClose();
     document.getElementById('durAskChk').checked = DAYS_ASK_ON;
@@ -6712,8 +6772,21 @@ create policy "app access" on critical_path
     const keep = sel.value;
     const labels = jvLotLabels();
     const rows = [...labels.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    // Whose house it is, beside the name — a leader hunting for their own jobs should not
+    // have to open each one to find out. The person's name if we know it, otherwise the
+    // tag the board wears.
+    const dir = clDirectory();
+    const whoFor = label => {
+      const tag = jobLeader(label);
+      if(!tag) return '';
+      const hit = dir.get(String(tag).toLowerCase());
+      return (hit && hit.name) || tag;
+    };
     sel.innerHTML = '<option value="">— pick a job —</option>'
-      + rows.map(([base, label]) => `<option value="${esc(base)}">${esc(label)}</option>`).join('');
+      + rows.map(([base, label]) => {
+          const who = whoFor(label);
+          return `<option value="${esc(base)}">${esc(label)}${who ? ' — ' + esc(who) : ''}</option>`;
+        }).join('');
     if(keep && labels.has(keep)) sel.value = keep;
     const c = document.getElementById('jvCount');
     if(c) c.textContent = `${rows.length} job${rows.length === 1 ? '' : 's'} to choose from`;
@@ -7742,7 +7815,14 @@ create policy "app access" on critical_path
     document.addEventListener('mousedown', e => {
       if(DUR && !e.target.closest('#durPop')) durClose();
     });
-    document.addEventListener('keydown', e => { if(e.key === 'Escape' && DUR) durClose(); });
+    document.addEventListener('keydown', e => {
+      if(!DUR) return;
+      if(e.key === 'Escape'){ durClose(); return; }
+      // Enter takes whatever is highlighted — the length, or the last day picked on the
+      // calendar — puts it on the board and shuts the popover. Same as pressing the blue
+      // button, without reaching for the mouse again.
+      if(e.key === 'Enter'){ e.preventDefault(); durApply(); }
+    });
 
     const chk = document.getElementById('durAskChk');
     if(chk){
@@ -8645,7 +8725,7 @@ create policy "app access" on critical_path
     const inp = JP_INPUT, item = JP_ITEMS[i];
     if(!inp || !item) return;
     const note = jobNote(inp.value);
-    inp.value = item.value + (note ? ` | ${note}` : '');
+    inp.value = item.value + (note ? jobSep(inp.value) + note : '');
     jpClose();
     // the cell's own handlers do the rest, exactly as if it had been typed
     JP_MUTE = true;
@@ -8816,6 +8896,414 @@ create policy "app access" on critical_path
     inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); go(); } });
   })();
 
+  // ---------- picking several jobs at once ----------
+  // Hold shift and drag a box over the board and everything it touches is picked up
+  // together; press and hold any one of them and the whole block moves, keeping its
+  // shape. Ctrl-click adds or removes one. A plain click anywhere puts the selection down.
+  let SEL = new Set();           // "wi:di:ji" on the partner currently on screen
+  let MARQ = null;               // { x0, y0, box }
+
+  function selKey(c){ return c.wi + ':' + c.di + ':' + c.ji; }
+  function selParse(k){ const a = k.split(':').map(Number); return { wi:a[0], di:a[1], ji:a[2] }; }
+
+  function selPaint(){
+    document.querySelectorAll('#mainPanel .cell-wrap').forEach(w => {
+      const c = dragCoords(w);
+      w.classList.toggle('picked', !!c && SEL.has(selKey(c)));
+    });
+  }
+
+  function selClear(){
+    if(!SEL.size) return;
+    SEL = new Set();
+    selPaint();
+  }
+
+  // Where a whole block would land, or null if it will not fit or would land on top of
+  // somebody else's job. Refusing is the point — a silent overwrite is unrecoverable
+  // by eye, and Undo is a poor substitute for not doing it.
+  function selDestinations(from, to){
+    const p = PARTNERS[selectedId];
+    if(!p) return null;
+    const items = [...SEL].map(selParse);
+    if(!items.length) return null;
+    const dRow = (to.wi * 5 + to.di) - (from.wi * 5 + from.di);
+    const dCol = to.ji - from.ji;
+    const moving = new Set(items.map(selKey));
+    const out = [];
+    for(const c of items){
+      const lin = c.wi * 5 + c.di + dRow;
+      if(lin < 0) return null;
+      const wi = Math.floor(lin / 5), di = lin % 5, ji = c.ji + dCol;
+      const w = p.weeks && p.weeks[wi];
+      if(!w || !w.days || !w.days[di]) return null;
+      if(ji < 0 || ji >= (w.jobNames || []).length) return null;
+      const dest = { wi: wi, di: di, ji: ji };
+      const sitting = dragCellText(p, dest);
+      if(sitting.trim() && !moving.has(selKey(dest))) return null;
+      out.push({ from: c, to: dest });
+    }
+    return out;
+  }
+
+  function selApply(plan){
+    const p = PARTNERS[selectedId];
+    if(!p || !plan || !plan.length) return;
+    const carried = plan.map(m => ({ to: m.to, text: dragCellText(p, m.from) }));
+    pushHistory(`move ${plan.length} job${plan.length === 1 ? '' : 's'}`, null);
+    plan.forEach(m => { p.weeks[m.from.wi].days[m.from.di].jobs[m.from.ji] = ''; });
+    carried.forEach(c => { p.weeks[c.to.wi].days[c.to.di].jobs[c.to.ji] = c.text; });
+    SEL = new Set(carried.map(c => selKey(c.to)));
+    markDirty(); queueSaveAll();
+    commitRoster();
+    riApplyFromCP();
+    riRenderAll();
+    renderMain();
+    if(!document.getElementById('paneJob').hidden){ jvFillPicker(); jvRender(); }
+    if(!document.getElementById('paneClose').hidden) coRender();
+  }
+
+  // Delete (or Backspace) takes the picked jobs off the board. Guarded on two things:
+  // there has to be a selection, and you must not be typing in a box at the time —
+  // otherwise Backspace while fixing a job name would empty half the week.
+  function selDelete(){
+    const p = PARTNERS[selectedId];
+    if(!p || !SEL.size) return;
+    const items = [...SEL].map(selParse).filter(c => dragCellText(p, c).trim());
+    if(!items.length){ selClear(); return; }
+    pushHistory(`take ${items.length} job${items.length === 1 ? '' : 's'} off the board`, null);
+    items.forEach(c => { p.weeks[c.wi].days[c.di].jobs[c.ji] = ''; });
+    SEL = new Set();
+    markDirty(); queueSaveAll();
+    commitRoster();
+    riApplyFromCP();
+    riRenderAll();
+    renderMain();
+    if(!document.getElementById('paneJob').hidden){ jvFillPicker(); jvRender(); }
+    if(!document.getElementById('paneClose').hidden) coRender();
+  }
+
+  // ---------- the selection box ----------
+  function marqStart(x, y){
+    const box = document.createElement('div');
+    box.className = 'marquee';
+    document.body.appendChild(box);
+    MARQ = { x0: x, y0: y, box: box };
+    document.body.style.userSelect = 'none';
+    marqTo(x, y);
+  }
+
+  function marqTo(x, y){
+    if(!MARQ) return;
+    const l = Math.min(MARQ.x0, x), t = Math.min(MARQ.y0, y);
+    const w = Math.abs(x - MARQ.x0), h = Math.abs(y - MARQ.y0);
+    Object.assign(MARQ.box.style, { left: l+'px', top: t+'px', width: w+'px', height: h+'px' });
+    const r = { l: l, t: t, r: l + w, b: t + h };
+    document.querySelectorAll('#mainPanel .cell-wrap.has-val').forEach(el => {
+      const b = el.getBoundingClientRect();
+      const hit = b.right > r.l && b.left < r.r && b.bottom > r.t && b.top < r.b;
+      el.classList.toggle('picked', hit);
+    });
+  }
+
+  function marqEnd(){
+    if(!MARQ) return;
+    MARQ.box.remove();
+    MARQ = null;
+    document.body.style.userSelect = '';
+    SEL = new Set();
+    document.querySelectorAll('#mainPanel .cell-wrap.picked').forEach(el => {
+      const c = dragCoords(el);
+      if(c) SEL.add(selKey(c));
+    });
+    selPaint();
+  }
+
+  // ---------- moving a job around the board ----------
+  // A board cell is a text box, so a plain click has to go on meaning "edit this". Picking
+  // a job up is therefore a press and hold, or a press and a decisive drag — either one
+  // crosses a threshold that a click never does, and below that threshold nothing changes.
+  const DRAG_HOLD_MS = 220;      // held still this long counts as picking it up
+  const DRAG_SLOP = 7;           // or moved this far while down
+  let DRAG = null;               // { wrap, from:{wi,di,ji}, text, ghost, pid }
+
+  function dragCoords(wrap){
+    const inp = wrap.querySelector('[data-role="job-cell"]');
+    if(!inp) return null;
+    return { wi: +inp.getAttribute('data-week'),
+             di: +inp.getAttribute('data-day'),
+             ji: +inp.getAttribute('data-job') };
+  }
+
+  function dragCellText(p, c){
+    const w = p.weeks && p.weeks[c.wi];
+    const d = w && w.days && w.days[c.di];
+    return (d && d.jobs && d.jobs[c.ji]) || '';
+  }
+
+  function dragBegin(wrap, x, y){
+    const p = PARTNERS[selectedId];
+    const from = dragCoords(wrap);
+    if(!p || !from) return false;
+    const text = dragCellText(p, from);
+    if(!text.trim()) return false;
+
+    if(typeof jpClose === 'function') jpClose();
+    if(typeof durClose === 'function') durClose();
+    const inp = wrap.querySelector('[data-role="job-cell"]');
+    if(inp) inp.blur();
+
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.textContent = jobText(text) || text;
+    document.body.appendChild(ghost);
+
+    // grabbing one of the picked jobs takes the whole picked block
+    const block = SEL.has(selKey(from)) && SEL.size > 1;
+    if(block) ghost.textContent = SEL.size + ' jobs';
+    DRAG = { wrap: wrap, from: from, text: text, ghost: ghost, pid: selectedId,
+             over: null, block: block, plan: null };
+    wrap.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    dragMoveTo(x, y);
+    return true;
+  }
+
+  function dragMoveTo(x, y){
+    if(!DRAG) return;
+    DRAG.ghost.style.left = (x + 14) + 'px';
+    DRAG.ghost.style.top = (y + 14) + 'px';
+
+    const el = document.elementFromPoint(x, y);
+    const wrap = el && el.closest ? el.closest('.cell-wrap') : null;
+    dragClearMarks();
+    DRAG.over = null;
+    DRAG.plan = null;
+    if(!wrap || wrap === DRAG.wrap) return;
+    const p = PARTNERS[DRAG.pid];
+    const to = dragCoords(wrap);
+    if(!p || !to) return;
+    DRAG.over = wrap;
+
+    if(DRAG.block){
+      const plan = selDestinations(DRAG.from, to);
+      DRAG.plan = plan;
+      if(plan){
+        plan.forEach(m => {
+          const w = dragWrapAt(m.to);
+          if(w) w.classList.add('drop-to');
+        });
+        dragTag('');
+      } else {
+        wrap.classList.add('no-drop');
+        dragTag('no', 'will not fit');
+      }
+      return;
+    }
+
+    const busy = !!dragCellText(p, to).trim();
+    wrap.classList.add('drop-to');
+    wrap.classList.toggle('occupied', busy);
+    dragTag(busy ? 'swap' : '', 'swap');
+  }
+
+  function dragWrapAt(c){
+    const inp = document.querySelector('#mainPanel [data-role="job-cell"]'
+      + `[data-week="${c.wi}"][data-day="${c.di}"][data-job="${c.ji}"]`);
+    return inp ? inp.closest('.cell-wrap') : null;
+  }
+
+  function dragClearMarks(){
+    document.querySelectorAll('#mainPanel .cell-wrap.drop-to, #mainPanel .cell-wrap.no-drop')
+      .forEach(w => w.classList.remove('drop-to', 'occupied', 'no-drop'));
+  }
+
+  // the little word on the ghost — 'swap', 'will not fit', or nothing
+  function dragTag(kind, text){
+    if(!DRAG) return;
+    const had = DRAG.ghost.querySelector('.swap, .no');
+    if(had) had.remove();
+    if(!kind) return;
+    const el = document.createElement('span');
+    el.className = kind;
+    el.textContent = text || kind;
+    DRAG.ghost.appendChild(el);
+  }
+
+  function dragFinish(drop){
+    if(!DRAG) return;
+    const { wrap, from, text, ghost, over, pid, block, plan } = DRAG;
+    DRAG = null;
+    ghost.remove();
+    wrap.classList.remove('dragging');
+    dragClearMarks();
+    document.body.style.userSelect = '';
+
+    const p = PARTNERS[pid];
+    const to = (drop && over && over !== wrap) ? dragCoords(over) : null;
+    if(!p || !to) return;                       // dropped nowhere — put it back, unchanged
+    if(block){ if(plan) selApply(plan); return; }
+
+    const landing = dragCellText(p, to);
+    pushHistory(`move ${jobText(text) || 'a job'}`, null);
+    p.weeks[to.wi].days[to.di].jobs[to.ji] = text;
+    p.weeks[from.wi].days[from.di].jobs[from.ji] = landing;   // '' unless it was a swap
+    markDirty(); queueSaveAll();
+    commitRoster();
+    riApplyFromCP();
+    riRenderAll();
+    renderMain();
+    if(!document.getElementById('paneJob').hidden){ jvFillPicker(); jvRender(); }
+    if(!document.getElementById('paneClose').hidden) coRender();
+  }
+
+  (function wireDrag(){
+    const panel = document.getElementById('mainPanel');
+    if(!panel) return;
+    let armed = null;      // { wrap, x, y, timer, id }
+
+    function disarm(){
+      if(armed && armed.timer) clearTimeout(armed.timer);
+      armed = null;
+    }
+
+    panel.addEventListener('pointerdown', e => {
+      if(e.button != null && e.button !== 0) return;
+      if(e.target.closest('.cell-x')) return;            // the clear button is not a handle
+      // shift and drag draws a box over the board
+      if(e.shiftKey){
+        e.preventDefault();
+        disarm();
+        marqStart(e.clientX, e.clientY);
+        try { panel.setPointerCapture(e.pointerId); } catch(_){}
+        return;
+      }
+      const wrap = e.target.closest('.cell-wrap');
+      // ctrl-click puts one job in or out of the selection
+      if((e.ctrlKey || e.metaKey) && wrap && wrap.classList.contains('has-val')){
+        e.preventDefault();
+        const c = dragCoords(wrap);
+        if(c){
+          const k = selKey(c);
+          if(SEL.has(k)) SEL.delete(k); else SEL.add(k);
+          selPaint();
+        }
+        return;
+      }
+      if(!wrap || !wrap.classList.contains('has-val')){ selClear(); return; }
+      if(!SEL.has(selKey(dragCoords(wrap) || {}))) selClear();
+      disarm();
+      armed = { wrap: wrap, x: e.clientX, y: e.clientY, id: e.pointerId, timer: null };
+      armed.timer = setTimeout(() => {
+        if(!armed) return;
+        if(dragBegin(armed.wrap, armed.x, armed.y)){
+          try { panel.setPointerCapture(armed.id); } catch(_){}
+        }
+        disarm();
+      }, DRAG_HOLD_MS);
+    });
+
+    panel.addEventListener('pointermove', e => {
+      if(MARQ){ e.preventDefault(); marqTo(e.clientX, e.clientY); return; }
+      if(DRAG){ e.preventDefault(); dragMoveTo(e.clientX, e.clientY); return; }
+      if(!armed) return;
+      const far = Math.abs(e.clientX - armed.x) > DRAG_SLOP
+               || Math.abs(e.clientY - armed.y) > DRAG_SLOP;
+      if(!far) return;
+      const held = armed;
+      disarm();
+      if(dragBegin(held.wrap, e.clientX, e.clientY)){
+        try { panel.setPointerCapture(held.id); } catch(_){}
+      }
+    });
+
+    panel.addEventListener('pointerup', e => {
+      disarm();
+      if(MARQ){
+        try { panel.releasePointerCapture(e.pointerId); } catch(_){}
+        marqEnd();
+        return;
+      }
+      if(DRAG){
+        try { panel.releasePointerCapture(e.pointerId); } catch(_){}
+        dragFinish(true);
+      }
+    });
+
+    panel.addEventListener('pointercancel', () => { disarm(); marqEnd(); dragFinish(false); });
+    // let go outside the board, or press Escape, and it goes back where it was
+    window.addEventListener('blur', () => { disarm(); dragFinish(false); });
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Escape'){
+        if(DRAG){ e.preventDefault(); dragFinish(false); return; }
+        if(MARQ){ e.preventDefault(); marqEnd(); selClear(); return; }
+        if(SEL.size){ e.preventDefault(); selClear(); }
+        return;
+      }
+      if(e.key === 'Delete' || e.key === 'Backspace'){
+        if(DRAG || MARQ || !SEL.size) return;
+        const t = e.target;
+        if(t && t.matches && t.matches('input, textarea, select')) return;   // mid-edit
+        e.preventDefault();
+        selDelete();
+      }
+    });
+    // a drag in progress must not also scroll the page under a finger
+    panel.addEventListener('touchmove', e => { if(DRAG) e.preventDefault(); }, { passive: false });
+  })();
+
+  // ---------- explanations folded behind a ••• ----------
+  // Anything whose whole job is to say what a section is for starts collapsed. Click the
+  // dots and it opens; click again and it goes. A note that carries a control — the
+  // grading-trade chips, a "put them back" button — is left alone, and one that grows a
+  // control later is put back on screen rather than hiding it.
+  const HELP_SEL = '.info-note, .setup-intro, .save-hint, .anchor-note, .ask-sub, .co-note';
+  const HELP_CONTROLS = 'button, input, select, textarea';
+
+  function helpFold(root){
+    const scope = (root && root.querySelectorAll) ? root : document;
+    if(scope.matches && scope.matches(HELP_SEL)) helpOne(scope);
+    scope.querySelectorAll(HELP_SEL).forEach(helpOne);
+  }
+
+  function helpOne(el){
+    const dots = (el.previousElementSibling && el.previousElementSibling.classList
+                  && el.previousElementSibling.classList.contains('help-dots'))
+                 ? el.previousElementSibling : null;
+
+    // it has grown a control since it was folded — give it back
+    if(el.dataset.helpFolded === '1' && el.querySelector(HELP_CONTROLS)){
+      el.hidden = false;
+      if(dots) dots.remove();
+      el.dataset.helpFolded = '';
+      return;
+    }
+    if(el.dataset.helpFolded === '1') return;
+    if(el.hasAttribute('hidden') && !el.dataset.helpFolded) return;   // hidden for its own reasons
+    if(el.querySelector(HELP_CONTROLS)) return;
+    if(!el.textContent.trim()) return;
+    // A popover redraws its innards, which can orphan a note between the observer
+    // noticing it and this running. Nothing to fold if it is no longer on the page.
+    if(!el.parentNode || !el.isConnected) return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'help-dots';
+    btn.textContent = '•••';
+    btn.title = 'What this is for';
+    btn.setAttribute('aria-label', 'What this is for');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', () => {
+      const showing = !el.hidden;
+      el.hidden = showing;
+      btn.classList.toggle('on', !showing);
+      btn.setAttribute('aria-expanded', String(!showing));
+    });
+    el.parentNode.insertBefore(btn, el);
+    el.hidden = true;
+    el.dataset.helpFolded = '1';
+  }
+
   // ---------- keeping the password manager out of the way ----------
   // Once a browser has seen one password box it will offer to fill, and to save, on
   // almost any field on the page — which on a schedule full of names and phone numbers
@@ -8854,12 +9342,20 @@ create policy "app access" on critical_path
   })();
 
   noAutofill(document);
+  helpFold(document);
   // Most of this app is drawn on the fly, so newly built fields are caught as they appear
   // rather than having every render remember to ask.
   new MutationObserver(records => {
     records.forEach(r => r.addedNodes.forEach(n => {
-      if(n.nodeType === 1) noAutofill(n);
+      if(n.nodeType !== 1) return;
+      noAutofill(n);
+      helpFold(n);
     }));
+    // a note redrawn in place (the grading chips, say) is reconsidered too
+    records.forEach(r => {
+      const t = r.target;
+      if(t && t.nodeType === 1 && t.matches && t.matches(HELP_SEL)) helpOne(t);
+    });
   }).observe(document.body, { childList: true, subtree: true });
 
   // ---------- init ----------
@@ -8902,6 +9398,5 @@ create policy "app access" on critical_path
   }).catch(() => {});
 })();
 </script>
-
-
-</body></html>
+</body>
+</html>
