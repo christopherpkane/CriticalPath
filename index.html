@@ -3872,6 +3872,10 @@ create policy "app access" on critical_path
       dl.innerHTML = list.map(l =>
         `<option value="${esc(l.tag)}">${esc(l.name || l.tag)}</option>`).join('');
     }
+    // Editing the list here changes what the Rough-In CL boxes should offer, and there
+    // are several ways in and out of this card — so the refresh lives with the list
+    // rather than being remembered at each one.
+    if(typeof riRenderDatalists === 'function') riRenderDatalists();
     const box = document.getElementById('ajLeaderManage');
     if(box && !box.hidden){
       box.innerHTML = '<h4>Construction leaders</h4>'
@@ -6072,7 +6076,27 @@ create policy "app access" on critical_path
         if(cell.nameSrc !== 'user' && cell.name !== crew){ cell.name = crew; cell.nameSrc = 'cp'; filled++; }
       });
     });
-    return filled;
+    return filled + riFillLeaders();
+  }
+
+  // The construction leader the board shows for a lot, dropped into any row that has not
+  // got one. A CL already in the box is somebody's own answer and is left alone.
+  function riFillLeaders(){
+    let n = 0;
+    const byBase = new Map();
+    riBoardJobs().forEach(j => {
+      const base = riLotBases.baseOf(j.name);
+      const cl = riLeaderFrom(j.name);
+      if(!base || !cl) return;
+      const cur = byBase.get(base);
+      if(!cur || j.date < cur.date) byBase.set(base, { cl: cl, date: j.date });
+    });
+    RI_ROWS.forEach(row => {
+      if(String(row.cl || '').trim()) return;
+      const hit = byBase.get(row.cpLink) || byBase.get(riLotBases.baseOf(row.job));
+      if(hit){ row.cl = hit.cl; n++; }
+    });
+    return n;
   }
 
   // ---------- calculations (unchanged from the standalone tracker) ----------
@@ -6331,12 +6355,43 @@ create policy "app access" on critical_path
     return out.sort((a, b) => a.localeCompare(b));
   }
 
+  // The construction leaders off the schedule's own list, each named the way the CL
+  // column names them. The board writes "(CK)" and this column shows "Chris K", so the
+  // dropdown has to offer "Chris K" as well — otherwise picking a name off the list and
+  // letting the board fill one in would produce two spellings of the same person, and
+  // the performance panel would count them as two people.
+  function riLeaderNames(){
+    const look = riLeaderLookup();
+    const out = [];
+    ajLeaders().forEach(l => {
+      const tag = String(l.tag || '').trim();
+      const first = String(l.name || '').trim().split(/\s+/)[0] || '';
+      const label = look[tag.toLowerCase()]
+                 || (first && look[first.toLowerCase()])
+                 || String(l.name || '').trim()
+                 || tag;
+      if(label) out.push(label);
+    });
+    return out;
+  }
+
+  // A CL typed straight into this tab that the leader list has never heard of — worth
+  // keeping on the dropdown. Initials are not: "CK" is another way of writing the
+  // "Chris K" already on the list, and offering both invites two spellings of one person.
+  function riLeaderExtras(){
+    const look = riLeaderLookup();
+    return RI_ROWS.map(r => String(r.cl || '').trim())
+      .filter(v => v && !look[v.toLowerCase().replace(/[^a-z]/g, '')]);
+  }
+
   function riRenderDatalists(){
     const set = (id, list) => {
       const el = document.getElementById(id);
       if(el) el.innerHTML = list.map(v => `<option value="${esc(v)}">`).join('');
     };
-    set('ri-dl-builders', riUnique(RI_ROWS.map(r => r.cl)));
+    // the schedule's list first, then anything typed straight into this tab that it does
+    // not already cover — a name somebody put in by hand should not vanish off the dropdown
+    set('ri-dl-builders', riUnique(riLeaderNames().concat(riLeaderExtras())));
     set('ri-dl-framers', riUnique(RI_ROWS.map(r => r.framing.name)));
     set('ri-dl-plumbers', riUnique(RI_ROWS.map(r => r.plumbing.name)));
     set('ri-dl-hvac', riUnique(RI_ROWS.map(r => r.hvac.name)));
@@ -6521,16 +6576,32 @@ create policy "app access" on critical_path
       t.classList.remove('from-cp');
     }
     markDirty(); queueSaveAll();
-    // A date box fires this on every part you type — the month, then the day, then
-    // each digit of the year. Rebuilding the table in the middle of that swaps the
-    // box out from under you, which is how a year came out as 0002. Dates are left
-    // alone until you move off them.
-    if(t.type === 'date'){ riRenderStats(); riRenderPartners(); riRenderBars(); return; }
-    riRefreshConflicts();
-    riRenderTable();
+    // Nothing here rebuilds the table. This fires on every keystroke, and redrawing the
+    // table throws away the very box being typed in — which is how a lot name came out
+    // one letter at a time, and how a year came out as 0002. The table catches up the
+    // moment you move off the box; see riSoftRefresh below.
     riRenderStats(); riRenderPartners(); riRenderBars();
     if(t.hasAttribute('list')) riRenderDatalists();
   });
+
+  // A lot typed in by hand is matched against the schedule the moment you move off the
+  // name, so the crews doing the work turn up on their own rather than waiting for
+  // somebody to remember to press Check the critical path.
+  function riRelink(tr){
+    const row = tr && RI_ROWS.find(r => r.id === Number(tr.dataset.id));
+    if(!row) return;
+    let changed = 0;
+    // Which house the typed name belongs to, read the same way the board reads it —
+    // "Beaverdam 14", "Beaverdam 14 (CK)" and "Beaverdam 14 - power" are one lot. If the
+    // board has that lot, the row points at it. Anything less certain is left to the
+    // usual matching, which asks before it guesses.
+    const base = riLotBases.baseOf(row.job);
+    const hit = base && riLotBases().indexOf(base) !== -1 ? base : '';
+    if(hit && row.cpLink !== hit){ row.cpLink = hit; row.linkState = 'ok'; changed++; }
+    changed += riAutoLinkAll();
+    changed += riApplyFromCP();
+    if(changed){ markDirty(); queueSaveAll(); }
+  }
 
   // Redrawn a beat later, so a click on the padlock right next to the box still lands
   // on the padlock rather than on whatever replaces it.
@@ -6547,12 +6618,14 @@ create policy "app access" on critical_path
 
   document.getElementById('riBody').addEventListener('focusout', (e) => {
     const t = e.target;
-    if(t.classList && t.classList.contains('ri-cell') && t.type === 'date') riSoftRefresh();
+    if(!t.classList || !t.classList.contains('ri-cell')) return;
+    if(t.dataset.field === 'job') riRelink(t.closest('tr'));
+    riSoftRefresh();
   });
 
   document.getElementById('riBody').addEventListener('keydown', (e) => {
     const t = e.target;
-    if(e.key === 'Enter' && t.classList && t.classList.contains('ri-cell') && t.type === 'date') t.blur();
+    if(e.key === 'Enter' && t.classList && t.classList.contains('ri-cell')) t.blur();
   });
 
   document.getElementById('riBody').addEventListener('click', (e) => {
