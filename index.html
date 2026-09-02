@@ -2201,7 +2201,7 @@ create policy "app access" on critical_path
   // A restore (undo/redo/import) can change anything at once — republish everything and
   // remove rows for partners that no longer exist.
   function queueSaveAll(){
-    if(!CLOUD_ON) return;
+    if(!CLOUD_ON || !cloudReady) return;
     Object.keys(PARTNERS).forEach(id => pendingSaves.add(id));
     pendingSaves.add(SETTINGS_ROW);
     Object.keys(remoteStamps).forEach(id => {
@@ -2254,6 +2254,11 @@ create policy "app access" on critical_path
     window.CRITICAL_PATH_CONFIG = { supabaseUrl: CLOUD_URL, supabaseKey: CLOUD_KEY };
     if(remember !== false) rememberCloud(CLOUD_URL, CLOUD_KEY);
   }
+  // False until the first read has come back. Everything on the page before that is the
+  // built-in starter schedule, and writing THAT over somebody's real row is how a whole
+  // trade partner's work disappears. No write is allowed to leave until this is true.
+  let cloudReady = false;
+
   const TABLE = 'critical_path';
   const SETTINGS_ROW = '__settings';
 
@@ -2414,13 +2419,13 @@ create policy "app access" on critical_path
   }
 
   function queueSave(id){
-    if(!CLOUD_ON) return;
+    if(!CLOUD_ON || !cloudReady) return;      // still the starter copy — nothing to save
     pendingSaves.add(id);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSaves, 700);
   }
   function queueDelete(id){
-    if(!CLOUD_ON) return;
+    if(!CLOUD_ON || !cloudReady) return;
     pendingSaves.delete(id);
     pendingDeletes.add(id);
     clearTimeout(saveTimer);
@@ -2429,6 +2434,9 @@ create policy "app access" on critical_path
 
   async function flushSaves(){
     if(!CLOUD_ON) return;
+    // The same rule as the queues, checked again here: a timer set before the first load
+    // can still be in flight when it lands, and it must not be allowed to write.
+    if(!cloudReady){ pendingSaves.clear(); pendingDeletes.clear(); return; }
     // Never write while the schedule is locked — we would push unencrypted data into an
     // encrypted table, or overwrite good rows with a half-loaded state.
     if(cryptoState === 'locked') return;
@@ -2470,6 +2478,19 @@ create policy "app access" on critical_path
   // Pull other people's changes. Only ids whose stamp moved are re-fetched.
   async function cloudPoll(){
     if(!CLOUD_ON || cryptoState === 'locked') return;
+    // A page that started up offline never got its first read. Until one succeeds it is
+    // still holding the starter copy, so it reads and stays quiet rather than writing.
+    if(!cloudReady){
+      try {
+        const had = await cloudLoadAll();
+        if(had === 'locked') return;
+        pendingSaves.clear(); pendingDeletes.clear();
+        cloudReady = true;
+        updateAnchorUI(); renderSidebar(); renderMain();
+        isDirty = false; updateSaveStatus(); setSync('synced');
+      } catch(_){ setSync('offline'); }
+      return;
+    }
     // Drain anything queued first (also the safety net if a retry timer was ever lost),
     // but keep polling regardless: a partner we are NOT editing should still receive
     // other people's changes while our own write is in flight.
@@ -2554,6 +2575,10 @@ create policy "app access" on critical_path
         return;
       }
       if(!had) await cloudPushAll();          // first run — publish the built-in schedule
+      // The real schedule is now the one on screen, so writing it back is safe. Anything
+      // queued before this point was queued against the starter copy and is dropped.
+      pendingSaves.clear(); pendingDeletes.clear();
+      cloudReady = true;
       updateAnchorUI(); renderSidebar(); renderMain();
       lastSyncedAt = Date.now();
       isDirty = false;
@@ -9466,7 +9491,10 @@ create policy "app access" on critical_path
   loadCatColors(APP_DATA.catColors);   // before the first paint, so nothing flashes
   // A saved file can hold a partner that was last written before the Week of date moved.
   // Straightened out before the first paint, so a board is never drawn on old dates.
-  if(redateEveryone()) markDirty();
+  // Deliberately NOT counted as an edit: the day dates are worked out from the Week of
+  // date every time the page opens, so there is nothing here worth saving — and at this
+  // point in start-up the schedule on screen is still the built-in starter one.
+  redateEveryone();
   updateAnchorUI();
   renderLegend();
   renderSidebar();
