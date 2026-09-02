@@ -2202,7 +2202,8 @@ create policy "app access" on critical_path
   // remove rows for partners that no longer exist.
   function queueSaveAll(){
     if(!CLOUD_ON || !cloudReady) return;
-    Object.keys(PARTNERS).forEach(id => pendingSaves.add(id));
+    Object.keys(PARTNERS).forEach(id => { localDirty.add(id); pendingSaves.add(id); });
+    localDirty.add(SETTINGS_ROW);
     pendingSaves.add(SETTINGS_ROW);
     Object.keys(remoteStamps).forEach(id => {
       if(id !== SETTINGS_ROW && !PARTNERS[id]) pendingDeletes.add(id);
@@ -2254,6 +2255,12 @@ create policy "app access" on critical_path
     window.CRITICAL_PATH_CONFIG = { supabaseUrl: CLOUD_URL, supabaseKey: CLOUD_KEY };
     if(remember !== false) rememberCloud(CLOUD_URL, CLOUD_KEY);
   }
+  // Partners holding work that is not yet safely in the database. A row stays here from
+  // the moment it is touched until its write has actually committed — not until the write
+  // is merely sent. The sync leaves these alone: the copy in the database is, by
+  // definition, older than what is on screen, and putting it back would undo the typing.
+  const localDirty = new Set();
+
   // False until the first read has come back. Everything on the page before that is the
   // built-in starter schedule, and writing THAT over somebody's real row is how a whole
   // trade partner's work disappears. No write is allowed to leave until this is true.
@@ -2420,6 +2427,7 @@ create policy "app access" on critical_path
 
   function queueSave(id){
     if(!CLOUD_ON || !cloudReady) return;      // still the starter copy — nothing to save
+    localDirty.add(id);
     pendingSaves.add(id);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSaves, 700);
@@ -2449,12 +2457,24 @@ create policy "app access" on critical_path
     try {
       if(ids.length){
         const rows = await Promise.all(ids.map(rowFor));
-        await cloudFetch(TABLE, {
+        // Ask for the stored rows back, so the timestamp kept is the one the database
+        // wrote. Keeping our own instead meant it never matched what the next poll read,
+        // and every poll then re-applied this row on top of whatever was being typed.
+        const wrote = await cloudFetch(`${TABLE}?select=id,updated_at`, {
           method: 'POST',
-          headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+          headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=representation' }),
           body: JSON.stringify(rows)
         });
-        rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+        let back = null;
+        try { back = await wrote.json(); } catch(_){ back = null; }
+        if(Array.isArray(back) && back.length){
+          back.forEach(r => { if(r && r.id) remoteStamps[r.id] = r.updated_at; });
+        } else {
+          rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+        }
+        // Safely stored — unless something has been typed since this write went out, in
+        // which case it stays held back for the next one.
+        ids.forEach(id => { if(!pendingSaves.has(id)) localDirty.delete(id); });
       }
       for(const id of dels){
         await cloudFetch(`${TABLE}?id=eq.${encodeURIComponent(id)}`,
@@ -2495,7 +2515,10 @@ create policy "app access" on critical_path
     // but keep polling regardless: a partner we are NOT editing should still receive
     // other people's changes while our own write is in flight.
     if(pendingSaves.size || pendingDeletes.size) flushSaves();
-    const skip = new Set([...pendingSaves, ...pendingDeletes]);
+    // Anything queued, in flight, or otherwise not yet committed is left as it is on
+    // screen. The database's copy of those is older than what is in front of the person
+    // typing, and applying it would take their work back off the board.
+    const skip = new Set([...pendingSaves, ...pendingDeletes, ...localDirty]);
     try {
       const res = await cloudFetch(`${TABLE}?select=id,updated_at`, { headers: cloudHeaders() });
       const rows = await res.json();
