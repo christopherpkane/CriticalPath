@@ -135,6 +135,21 @@
   .sync-dot.dot-ok { background: var(--status-good); }
   .sync-dot.dot-wait { background: var(--series-4); }
   .sync-dot.dot-bad { background: var(--alert-accent); }
+  /* A failed write is the one state worth interrupting somebody for, so it stops being
+     a quiet grey line and becomes something you cannot read past. */
+  .sync-status.sync-bad {
+    background: var(--alert-bg, rgba(200,60,60,.14));
+    color: var(--danger-text);
+    border: 1px solid var(--alert-accent);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-weight: 600;
+  }
+  .sync-status.sync-bad .sync-dot { background: var(--alert-accent); }
+  @keyframes syncPulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .sync-status.sync-bad .sync-dot { animation: syncPulse 1.1s ease-in-out infinite; }
+  .addpartner-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .addpartner-row .info-note { margin: 0; flex: 1 1 260px; }
   .save-status { font-size: 12.5px; color: var(--text-muted); }
   .save-status.dirty { color: var(--series-2); font-weight: 600; }
   .save-hint { color: var(--text-muted); font-size: 12px; margin: 0 0 18px 0; }
@@ -1069,6 +1084,8 @@
     color: var(--text-secondary); margin: 0 0 12px 2px; cursor: pointer; user-select: none;
   }
   .dur-optin input { width: 15px; height: 15px; accent-color: var(--series-1); cursor: pointer; }
+  /* The checkbox above sits inline, so this clears it onto its own line. */
+  .history-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px 2px; }
   .dur-pop {
     position: absolute; z-index: 90; width: 362px; max-width: calc(100vw - 20px);
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
@@ -1324,9 +1341,6 @@
   <p class="subtitle">Brown Haven Homes — rolling 4-week crew schedule by trade partner. Pick a trade partner, then edit any cell directly.</p>
 
   <div class="toolbar">
-    <button class="primary" id="addPartnerBtn">+ Add Trade Partner</button>
-    <button id="undoBtn" class="history-btn" disabled>↶ Undo</button>
-    <button id="redoBtn" class="history-btn" disabled>↷ Redo</button>
     <button id="saveAppBtn" class="save-btn">⤓ Save My Tracker</button>
     <button id="autoSaveBtn" hidden>⟳ Auto-Save: Off</button>
     <span id="syncStatus" class="sync-status" hidden></span>
@@ -1424,10 +1438,26 @@
       </div>
     </div>
 
+    <div class="card addjob-card">
+      <div class="addpartner-row">
+        <button class="primary" id="addPartnerBtn">+ Add Trade Partner</button>
+        <p class="info-note">
+          Adds an empty four-week board for a crew that is not on the list yet. It arrives at
+          the bottom of the trade partners on the left, where you can name it, set its trade,
+          add its contacts, and drag it into the right place in the run of work.
+        </p>
+      </div>
+    </div>
+
     <label class="dur-optin" title="Turn this off if you would rather just type in the cells">
       <input type="checkbox" id="durAskChk">
       Ask how many days when I put a job in a cell
     </label>
+
+    <div class="history-row">
+      <button id="undoBtn" class="history-btn" disabled>↶ Undo</button>
+      <button id="redoBtn" class="history-btn" disabled>↷ Redo</button>
+    </div>
 
     <div class="app-layout">
       <div class="sidebar card">
@@ -1436,7 +1466,7 @@
         </button>
         <div class="sidebar-body" id="sidebarBody">
           <input type="text" id="partnerSearch" placeholder="Search trade partners…">
-          <p class="sidebar-order-note">Listed in workbook order (construction sequence).</p>
+          <p class="sidebar-order-note">In the order work runs — press and hold a name to move it.</p>
           <div class="cat-legend" id="catLegend"></div>
           <div id="partnerList"></div>
         </div>
@@ -2292,21 +2322,71 @@ create policy "app access" on critical_path
   }
   function stampNow(){ return new Date().toISOString() + '-' + Math.random().toString(36).slice(2, 8); }
 
+  // Reading and writing fail separately and matter differently, so they are tracked
+  // separately. Not receiving somebody else's changes for a minute is a nuisance; your
+  // own work not landing is the thing that loses a morning.
+  let lastWriteOkAt = 0, lastReadOkAt = 0, writeFails = 0;
+
+  function agoText(then){
+    if(!then) return '';
+    const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
+    if(secs < 5) return 'just now';
+    if(secs < 60) return secs + ' seconds ago';
+    const mins = Math.round(secs / 60);
+    if(mins < 60) return mins === 1 ? 'a minute ago' : mins + ' minutes ago';
+    const hrs = Math.round(mins / 60);
+    return hrs === 1 ? 'an hour ago' : hrs + ' hours ago';
+  }
+
   function setSync(state){
     syncState = state;
+    paintSync();
+  }
+
+  function paintSync(){
     const el = document.getElementById('syncStatus');
     if(!el) return;
-    if(!CLOUD_ON){ el.hidden = true; return; }
+    if(!CLOUD_ON){ el.hidden = true; el.classList.remove('sync-bad'); return; }
     el.hidden = false;
-    const map = {
-      connecting: ['dot-wait', 'Connecting…'],
-      saving:     ['dot-wait', 'Saving…'],
-      synced:     ['dot-ok',   lastSyncedAt ? 'All changes shared' : 'Shared'],
-      offline:    ['dot-bad',  'Offline — retrying, your edits are kept'],
-    };
-    const [cls, text] = map[state] || map.synced;
+    let cls = 'dot-ok', text = 'Shared', bad = false;
+
+    if(writeFails){
+      // Said plainly, and it stays said until a write actually gets through. The count is
+      // there because one failed attempt is a hiccup and six is a problem worth acting on.
+      bad = true; cls = 'dot-bad';
+      text = 'NOT SAVED — retrying'
+           + (writeFails > 1 ? ` (${writeFails} tries)` : '')
+           + '. Your work is still on screen — leave this tab open.';
+    } else if(syncState === 'connecting'){
+      cls = 'dot-wait'; text = 'Connecting…';
+    } else if(syncState === 'saving' || localDirty.size){
+      cls = 'dot-wait'; text = 'Saving…';
+    } else if(syncState === 'offline'){
+      // Writes are fine, we just are not hearing from anybody else at the moment.
+      cls = 'dot-wait';
+      text = 'Can\u2019t reach the database — retrying'
+           + (lastWriteOkAt ? ` · your work was saved ${agoText(lastWriteOkAt)}` : '');
+    } else {
+      cls = 'dot-ok';
+      text = lastWriteOkAt ? 'Saved ' + agoText(lastWriteOkAt)
+           : (lastReadOkAt ? 'Shared — nothing changed yet' : 'Shared');
+    }
+    el.classList.toggle('sync-bad', bad);
     el.innerHTML = `<i class="sync-dot ${cls}"></i>${esc(text)}`;
   }
+
+  // "Saved 4 seconds ago" has to keep being true, so it is redrawn rather than written
+  // once and left. Cheap: one small line of text.
+  setInterval(paintSync, 5000);
+
+  // Work that has not been written yet lives only in this tab. Closing it would take that
+  // work with it, so it is worth one question first.
+  window.addEventListener('beforeunload', e => {
+    if(!CLOUD_ON || !localDirty.size) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
 
   async function cloudFetch(path, opts){
     const res = await fetch(`${CLOUD_URL}/rest/v1/${path}`, opts);
@@ -2488,6 +2568,8 @@ create policy "app access" on critical_path
         delete remoteStamps[id];
       }
       lastSyncedAt = Date.now();
+      lastWriteOkAt = Date.now();
+      writeFails = 0;
       isDirty = false;
       updateSaveStatus();
       setSync('synced');
@@ -2495,7 +2577,8 @@ create policy "app access" on critical_path
       // put the work back and keep retrying — an edit must never be silently dropped
       ids.forEach(i => pendingSaves.add(i));
       dels.forEach(i => pendingDeletes.add(i));
-      setSync('offline');
+      writeFails++;
+      setSync('writefail');
       clearTimeout(saveTimer);
       saveTimer = setTimeout(flushSaves, 3000);
     }
@@ -2529,6 +2612,7 @@ create policy "app access" on critical_path
       const res = await cloudFetch(`${TABLE}?select=id,updated_at`, { headers: cloudHeaders() });
       const rows = await res.json();
       const present = new Set(rows.map(r => r.id));
+      lastReadOkAt = Date.now();
       const changed = rows.filter(r => remoteStamps[r.id] !== r.updated_at && !skip.has(r.id)).map(r => r.id);
       const removed = Object.keys(remoteStamps).filter(id => !present.has(id) && !skip.has(id));
       if(!changed.length && !removed.length){
