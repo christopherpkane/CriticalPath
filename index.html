@@ -150,6 +150,22 @@
   .sync-status.sync-bad .sync-dot { animation: syncPulse 1.1s ease-in-out infinite; }
   .addpartner-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .addpartner-row .info-note { margin: 0; flex: 1 1 260px; }
+  .job-edit {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 0 0 10px 0; padding: 10px 11px;
+    background: var(--surface-2, var(--surface-1));
+    border: 1px solid var(--series-1); border-radius: 9px;
+  }
+  .job-edit input, .job-edit select {
+    font-family: inherit; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface-1); color: var(--text-primary);
+  }
+  .job-edit input { min-width: 190px; }
+  .job-edit .je-where { flex: 1 1 100%; font-size: 12px; color: var(--text-muted); }
+  .job-edit .je-warn { flex: 1 1 100%; font-size: 12px; color: var(--danger-text); font-weight: 600; }
+  .cl-chip button.je-btn { color: var(--text-muted); }
+  .cl-chip button.je-btn:hover { color: var(--series-1); }
   .save-status { font-size: 12.5px; color: var(--text-muted); }
   .save-status.dirty { color: var(--series-2); font-weight: 600; }
   .save-hint { color: var(--text-muted); font-size: 12px; margin: 0 0 18px 0; }
@@ -4255,6 +4271,119 @@ create policy "app access" on critical_path
     return n;
   }
 
+
+  // ---------- correcting a job's name or its construction leader ----------
+  // A job name is written down in more places than the list it is edited from, so a
+  // rename that only changed the list would leave the board disagreeing with it. Every
+  // one of those places is rewritten together, or none is.
+  let JOB_EDITING = '';        // the job name currently open for editing
+
+  // Every board cell holding this job, wherever it is.
+  function jobCellsFor(key){
+    const out = [];
+    Object.keys(PARTNERS).forEach(pid => {
+      const p = PARTNERS[pid];
+      (p.weeks || []).forEach((w, wi) => (w.days || []).forEach((d, di) =>
+        (d.jobs || []).forEach((j, ji) => {
+          if(j && jobKey(j) === key) out.push({ pid: pid, wi: wi, di: di, ji: ji, text: j });
+        })));
+    });
+    return out;
+  }
+
+  function jobRename(oldName, newNameRaw, newCl){
+    const oldKey = jobKey(oldName);
+    const split = splitLeaderTag(jobText(newNameRaw));
+    const newName = split.name;
+    const cl = String(newCl == null ? '' : newCl).trim();
+    if(!newName) return { ok: false, msg: 'Give the job a name.' };
+    const newKey = jobKey(newName);
+    if(!newKey) return { ok: false, msg: 'Give the job a name.' };
+    // Renaming onto a job that already exists would silently merge two houses into one,
+    // and their close-out records and dates with them. Better to say so and stop.
+    if(newKey !== oldKey && ROSTER[newKey]){
+      return { ok: false, msg: `There is already a job called “${ROSTER[newKey].name}”. `
+                             + 'Two houses cannot share a name — retire one first.' };
+    }
+    const prev = ROSTER[oldKey] || {};
+    if(newKey === oldKey && prev.name === newName && (prev.cl || '') === cl){
+      return { ok: false, msg: 'Nothing to change.' };
+    }
+
+    const cells = jobCellsFor(oldKey);
+    pushHistory(`rename ${oldName}`, null);
+
+    // the board — the name and the tag are replaced, whatever was typed after them is not
+    const touched = new Set();
+    cells.forEach(c => {
+      const raw = PARTNERS[c.pid].weeks[c.wi].days[c.di].jobs[c.ji];
+      const note = jobNote(raw);
+      PARTNERS[c.pid].weeks[c.wi].days[c.di].jobs[c.ji] =
+        newName + (cl ? ` (${cl})` : '') + (note ? jobSep(raw) + note : '');
+      touched.add(c.pid);
+    });
+
+    // the list
+    delete ROSTER[oldKey];
+    ROSTER[newKey] = { name: newName, cl: cl, last: prev.last || '' };
+
+    // the close-out record, its start date and its label
+    if(CLOSE_OUTS[oldKey]){
+      const rec = CLOSE_OUTS[oldKey];
+      delete CLOSE_OUTS[oldKey];
+      rec.label = newName;
+      rec.cl = cl;
+      rec.base = newKey;
+      CLOSE_OUTS[newKey] = rec;
+    }
+
+    // the days this job was first seen on each board
+    if(JOB_SEEN[oldKey]){
+      JOB_SEEN[newKey] = JOB_SEEN[oldKey];
+      if(newKey !== oldKey) delete JOB_SEEN[oldKey];
+    }
+
+    // the retired list, which holds names rather than keys
+    JOB_RETIRED = JOB_RETIRED.map(x => jobKey(x) === oldKey ? newName : x);
+
+    // the Rough-In rows, and the link that ties a row to a house on the board
+    const clName = cl ? riLeaderFrom(`x (${cl})`) : '';
+    RI_ROWS.forEach(r => {
+      const mine = jobKey(r.job) === oldKey;      // read before the name is changed
+      if(mine) r.job = newName;
+      if(r.cpLink && riNorm(r.cpLink) === riNorm(oldName)){ r.cpLink = ''; r.linkState = ''; }
+      if(mine && clName) r.cl = clName;
+    });
+    riAutoLinkAll();
+
+    markDirty();
+    touched.forEach(pid => queueSave(pid));
+    queueSave(SETTINGS_ROW);
+    return { ok: true, cells: cells.length, partners: touched.size, name: newName };
+  }
+
+  function jobEditRow(name){
+    const cl = jobLeader(name);
+    const cells = jobCellsFor(jobKey(name));
+    const where = cells.length
+      ? `On the board <b>${cells.length}</b> time${cells.length === 1 ? '' : 's'}`
+        + ` across <b>${new Set(cells.map(c => c.pid)).size}</b> trade partner`
+        + (new Set(cells.map(c => c.pid)).size === 1 ? '' : 's')
+        + ' — all of them change, and anything typed after the name stays as it is.'
+      : 'Not on the board at the moment, so this only changes the list.';
+    return `<div class="job-edit">
+        <input id="jeName" value="${esc(name)}" placeholder="job name">
+        <select id="jeCl">
+          <option value="">— no CL —</option>
+          ${ajLeaders().map(l => `<option value="${esc(l.tag)}"${l.tag === cl ? ' selected' : ''}>`
+            + `${esc(l.name ? l.name + ' (' + l.tag + ')' : l.tag)}</option>`).join('')}
+        </select>
+        <button id="jeSave" class="primary">Save</button>
+        <button id="jeCancel">Cancel</button>
+        <span class="je-where">${where}</span>
+      </div>`;
+  }
+
   function ajRenderJobList(){
     const box = document.getElementById('ajJobManage');
     if(!box || box.hidden) return;
@@ -4263,12 +4392,14 @@ create policy "app access" on critical_path
     const all = activeJobNames();
     const shown = q ? all.filter(n => n.toLowerCase().includes(q)) : all;
     box.innerHTML = `<h4>Active jobs — ${all.length}</h4>`
+      + (JOB_EDITING && all.indexOf(JOB_EDITING) !== -1 ? jobEditRow(JOB_EDITING) : '')
       + `<input class="job-filter" id="ajJobFilter" placeholder="find a job…" value="${esc(filterVal)}">`
       + '<div class="job-scroll"><div class="cl-chips">'
       + (shown.length ? shown.map(n => {
           const cl = jobLeader(n);
           return `<span class="cl-chip"><span class="tag">${esc(n)}</span>`
             + (cl ? `<span class="who">${esc(cl)}</span>` : '')
+            + `<button class="je-btn" data-jobedit="${esc(n)}" title="Correct the spelling or change the CL">✎</button>`
             + `<button data-jobretire="${esc(n)}" title="Finished — take it off the list">✕</button></span>`;
         }).join('')
         : '<span class="cl-hidden-note">Nothing matches that.</span>')
@@ -4299,7 +4430,60 @@ create policy "app access" on critical_path
     if(e.target.id === 'ajJobFilter') ajRenderJobList();
   });
 
+  document.getElementById('ajJobManage').addEventListener('click', (e) => {
+    const open = e.target.closest('[data-jobedit]');
+    if(open){
+      const n = open.getAttribute('data-jobedit');
+      JOB_EDITING = (JOB_EDITING === n) ? '' : n;      // the pencil closes it again too
+      ajRenderJobList();
+      const box = document.getElementById('jeName');
+      if(box){ box.focus(); box.select(); }
+      return;
+    }
+    if(e.target.closest('#jeCancel')){ JOB_EDITING = ''; ajRenderJobList(); return; }
+    if(e.target.closest('#jeSave')){
+      const nameEl = document.getElementById('jeName');
+      const clEl = document.getElementById('jeCl');
+      if(!nameEl || !clEl) return;
+      const res = jobRename(JOB_EDITING, nameEl.value, clEl.value);
+      if(!res.ok){
+        const row = document.querySelector('.job-edit');
+        let warn = row && row.querySelector('.je-warn');
+        if(row && !warn){
+          warn = document.createElement('span');
+          warn.className = 'je-warn';
+          row.appendChild(warn);
+        }
+        if(warn) warn.innerHTML = esc(res.msg);
+        return;
+      }
+      JOB_EDITING = '';
+      commitRoster();
+      riApplyFromCP();
+      renderSidebar(); renderMain(); riRenderAll(); renderWatch();
+      ajRenderJobList(); ajRenderLeaderList();
+      if(!document.getElementById('paneJob').hidden){ jvFillPicker(); jvRender(); }
+      if(!document.getElementById('paneClose').hidden) coRender();
+      // the Job Tracker tab is not in every build of this file
+      if(typeof jtRefreshIfOpen === 'function') jtRefreshIfOpen();
+      jcSyncBadge(); updateHistoryUI();
+      const el = document.getElementById('saveStatus');
+      if(el){
+        el.textContent = res.cells
+          ? `Renamed to ${res.name} — ${res.cells} cell${res.cells === 1 ? '' : 's'} updated`
+          : `Renamed to ${res.name}`;
+        el.classList.remove('dirty');
+        setTimeout(updateSaveStatus, 3000);
+      }
+    }
+  });
+
   document.getElementById('ajJobManage').addEventListener('keydown', (e) => {
+    if(e.target.id === 'jeName'){
+      if(e.key === 'Enter'){ e.preventDefault();
+        const b = document.getElementById('jeSave'); if(b) b.click(); return; }
+      if(e.key === 'Escape'){ JOB_EDITING = ''; ajRenderJobList(); return; }
+    }
     if(e.key === 'Enter' && e.target.id === 'ajJobNew'){
       e.preventDefault();
       const btn = document.getElementById('ajJobAddBtn');
