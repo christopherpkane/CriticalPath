@@ -684,6 +684,23 @@
   .ph-actions { margin-left: auto; }
 
   .contacts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .fold-card .fold-head {
+    display: flex; align-items: center; gap: 9px; width: 100%;
+    background: none; border: 0; padding: 0; margin: 0 0 12px 0;
+    font: inherit; color: inherit; cursor: pointer; text-align: left;
+  }
+  .fold-card .fold-head h2 { margin: 0; }
+  .fold-card .fold-head .fold-count {
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    letter-spacing: 0; text-transform: none;
+  }
+  .fold-card .fold-head .chev { margin-left: auto; color: var(--text-muted); transition: transform .15s; }
+  .fold-card .fold-head:hover .chev, .fold-card .fold-head:hover .fold-count { color: var(--series-1); }
+  .fold-card.folded .fold-head { margin-bottom: 0; }
+  .fold-card.folded .fold-head .chev { transform: rotate(-90deg); }
+  .fold-card.folded .contact-rows, .fold-card.folded .add-contact-btn { display: none; }
+  /* Folded it is a header and nothing else, so it stops setting the height of the row. */
+  .fold-card.folded { align-self: start; }
   .contact-row { display: grid; grid-template-columns: 1fr 1fr 1fr 24px; gap: 6px; align-items: center; margin-bottom: 6px; }
   .contact-row input {
     width: 100%; font-family: inherit; font-size: 12.5px; padding: 6px 8px;
@@ -2287,6 +2304,23 @@ create policy "app access" on critical_path
   //      connected after a refresh, since a page on a server cannot rewrite itself
   // Nothing here is a password. Supabase publishes the anon key on purpose; what
   // guards the schedule is the table rule and, if you turn it on, the passphrase.
+  // How somebody likes to look at the page, not part of the schedule — so these live on
+  // this computer, are never shared, and never count as an edit.
+  //
+  // They start differently on purpose. A trade partner's own contacts are the reason to be
+  // on their page, so that card starts open. The Brown Haven list is the same seven people
+  // on all thirty-five partners, so it starts folded — repetition until you want it.
+  const FOLD_KEY = { tp: 'brownhaven.criticalpath.tpfold',
+                     cl: 'brownhaven.criticalpath.clfold' };
+  const FOLD_STATE = { tp: false, cl: true };
+  Object.keys(FOLD_KEY).forEach(k => {
+    try {
+      const saved = window.localStorage.getItem(FOLD_KEY[k]);
+      if(saved === '1') FOLD_STATE[k] = true;
+      else if(saved === '0') FOLD_STATE[k] = false;
+    } catch(_){}                     // private window, or storage switched off
+  });
+
   const CLOUD_REMEMBER = 'brownhaven.criticalpath.cloud';
 
   function rememberedCloud(){
@@ -2996,16 +3030,8 @@ create policy "app access" on critical_path
       </div>
 
       <div class="contacts-grid">
-        <div class="card">
-          <h2>Trade Partner Contacts</h2>
-          <div class="contact-rows" data-role="contacts" data-kind="tp">${renderContactRows(p.tpContacts, 'tp')}</div>
-          <button class="add-contact-btn" data-role="add-contact" data-kind="tp">+ Add Contact</button>
-        </div>
-        <div class="card">
-          <h2>Brown Haven (CL) Contacts</h2>
-          <div class="contact-rows" data-role="contacts" data-kind="cl">${renderContactRows(p.clContacts, 'cl')}</div>
-          <button class="add-contact-btn" data-role="add-contact" data-kind="cl">+ Add Contact</button>
-        </div>
+        ${contactCard('tp', 'Trade Partner Contacts', p.tpContacts)}
+        ${contactCard('cl', 'Brown Haven (CL) Contacts', p.clContacts)}
       </div>
     `;
 
@@ -3018,6 +3044,22 @@ create policy "app access" on critical_path
 
     mainEl.innerHTML = html;
     wireMainEvents(mainEl, p);
+  }
+
+  // Both contact cards, from one description. Identical but for which list they hold and
+  // which way they start.
+  function contactCard(kind, title, list){
+    const rows = list || [];
+    const folded = FOLD_STATE[kind];
+    return `<div class="card fold-card${folded ? ' folded' : ''}">
+      <button class="fold-head" data-fold="${kind}" aria-expanded="${folded ? 'false' : 'true'}">
+        <h2>${esc(title)}</h2>
+        <span class="fold-count">${rows.length} ${rows.length === 1 ? 'person' : 'people'}</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="contact-rows" data-role="contacts" data-kind="${kind}">${renderContactRows(rows, kind)}</div>
+      <button class="add-contact-btn" data-role="add-contact" data-kind="${kind}">+ Add Contact</button>
+    </div>`;
   }
 
   function renderContactRows(contacts, kind){
@@ -3148,6 +3190,19 @@ create policy "app access" on critical_path
         });
       });
     });
+    mainEl.querySelectorAll('[data-fold]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const kind = btn.getAttribute('data-fold');
+        FOLD_STATE[kind] = !FOLD_STATE[kind];
+        try { window.localStorage.setItem(FOLD_KEY[kind], FOLD_STATE[kind] ? '1' : '0'); } catch(_){}
+        // Toggled in place rather than redrawn — a redraw here would throw away a
+        // half-typed contact in the card next to it.
+        const card = btn.closest('.fold-card');
+        if(card) card.classList.toggle('folded', FOLD_STATE[kind]);
+        btn.setAttribute('aria-expanded', FOLD_STATE[kind] ? 'false' : 'true');
+      });
+    });
+
     mainEl.querySelectorAll('[data-role="add-contact"]').forEach(btn => {
       btn.addEventListener('click', () => {
         const kind = btn.getAttribute('data-kind');
