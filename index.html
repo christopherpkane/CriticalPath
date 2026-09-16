@@ -660,7 +660,7 @@
 
   /* unlock screen */
   .lock-screen {
-    position: fixed; inset: 0; z-index: 50; background: var(--page-plane);
+    position: fixed; inset: 0; z-index: 300; background: var(--page-plane);
     display: flex; align-items: center; justify-content: center; padding: 24px;
   }
   .lock-card {
@@ -671,6 +671,12 @@
   .lock-ico { font-size: 34px; margin-bottom: 6px; }
   .lock-card h2 { font-size: 17px; margin: 0 0 8px 0; color: var(--text-primary); text-transform: none; letter-spacing: 0; }
   .lock-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 16px 0; }
+  .lock-card p.lock-why {
+    background: color-mix(in srgb, var(--status-warn) 12%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--status-warn) 45%, transparent);
+    border-radius: 8px; padding: 10px 12px; text-align: left;
+    color: var(--text-primary);
+  }
   .lock-card input {
     width: 100%; font-family: inherit; font-size: 14px; padding: 10px 12px;
     border: 1px solid var(--border); border-radius: 8px; background: var(--page-plane); color: var(--text-primary);
@@ -1851,8 +1857,9 @@
     <div class="lock-card">
       <div class="lock-ico">🔐</div>
       <h2>Asheville Critical Path</h2>
-      <p>Enter the team password to open the schedule. It is never sent anywhere —
+      <p id="gateIntro">Enter the team password to open the schedule. It is never sent anywhere —
          it unlocks the page on this computer only.</p>
+      <p class="lock-why" id="gateWhy" hidden></p>
       <input type="password" id="gateInput" placeholder="Team password" autocomplete="current-password">
       <div class="lock-actions">
         <button class="primary" id="gateBtn">Open</button>
@@ -2452,6 +2459,12 @@ create policy "app access" on critical_path
   // own work not landing is the thing that loses a morning.
   let lastWriteOkAt = 0, lastReadOkAt = 0, writeFails = 0;
 
+  // A network that is down and a key that has been withdrawn both arrive as "it failed",
+  // and they want opposite treatment. The first comes good on its own and is worth
+  // retrying all afternoon; the second never will, and retrying it only hides the fact
+  // that nobody's work is going anywhere.
+  let keyDead = false, keyDeadTimes = 0;
+
   function agoText(then){
     if(!then) return '';
     const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
@@ -2475,7 +2488,14 @@ create policy "app access" on critical_path
     el.hidden = false;
     let cls = 'dot-ok', text = 'Shared', bad = false;
 
-    if(writeFails){
+    if(keyDead){
+      // Only reachable on a copy with no lock to fall back on — a published page puts the
+      // password screen up instead of leaving this sitting here.
+      bad = true; cls = 'dot-bad';
+      text = 'NOT SAVED — the key this copy uses was refused, most likely because it has '
+           + 'been replaced. Ask whoever set up sharing for the current one and paste it '
+           + 'in on the Sharing tab. Your work is still on screen.';
+    } else if(writeFails){
       // Said plainly, and it stays said until a write actually gets through. The count is
       // there because one failed attempt is a hiccup and six is a problem worth acting on.
       bad = true; cls = 'dot-bad';
@@ -2507,16 +2527,68 @@ create policy "app access" on critical_path
   // Work that has not been written yet lives only in this tab. Closing it would take that
   // work with it, so it is worth one question first.
   window.addEventListener('beforeunload', e => {
-    if(!CLOUD_ON || !localDirty.size) return;
+    // Sharing switched off by a refused key still counts: the work is held, not dropped,
+    // and it goes up the moment the password is typed again.
+    if((!CLOUD_ON && !keyDead) || !localDirty.size) return;
     e.preventDefault();
     e.returnValue = '';
     return '';
   });
 
+  function keyWasRefused(status, body){
+    if(status === 401) return true;       // no key, or one this project does not know
+    if(status !== 403) return false;
+    // 403 is usually the table's own rules answering ("permission denied", 42501). That
+    // is a policy problem and a fresh key will not touch it, so only the answers that
+    // name the key itself count here.
+    const t = String(body || '');
+    if(/permission denied|42501/i.test(t)) return false;
+    return /invalid|expired|revoked|jwt|api key/i.test(t);
+  }
+
   async function cloudFetch(path, opts){
     const res = await fetch(`${CLOUD_URL}/rest/v1/${path}`, opts);
-    if(!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    if(!res.ok){
+      const body = await res.text();
+      if(keyWasRefused(res.status, body)) keyRefused();
+      throw new Error(`${res.status} ${body}`);
+    }
     return res;
+  }
+
+  // The connection this browser saved is the thing that is wrong, so stop handing it
+  // back. On a published page that costs nobody a phone call: the current connection is
+  // sitting in the page's own lock, and the team password is what opens it. So ask for
+  // the password again rather than leaving a red light that no one can act on.
+  async function keyRefused(){
+    if(keyDead) return;                   // every request already in flight lands here
+    keyDead = true;
+    keyDeadTimes++;
+    rememberCloud('', '');                // never start up on this key again
+    if(!LOCK){
+      // A copy that was emailed round carries its connection in the clear and has no lock
+      // to fall back on. Clearing it would strand them with nothing to type, so it stays
+      // where it is and the sync line says what happened instead.
+      paintSync();
+      return;
+    }
+    clearTimeout(saveTimer);
+    setCloudConfig('', '', false);        // stops the poll and the retry loop
+    setSync('off');
+    GATE_OPEN = false;
+    applyCloudChrome();
+    // A tab that has been open since before the new page went up is still holding the
+    // old lock, and unlocking it would only produce the same refused key again. The
+    // published page is one fetch away, so take its lock rather than making somebody
+    // reload — a reload here would cost them whatever they had just typed.
+    await refreshLock();
+    gateShow(keyDeadTimes > 1
+      ? 'That password was right, but the connection behind it was refused as well — so '
+      + 'this page is itself out of date. Whoever set up sharing needs to publish a fresh '
+      + 'locked copy. Nothing on screen has been lost.'
+      : 'The key this browser saved has been replaced. Type the team password once more '
+      + 'and it will pick up the new one. Nothing has been lost — anything on screen that '
+      + 'had not been saved yet goes up as soon as it opens.');
   }
 
   // ---------- end-to-end encryption ----------
@@ -9673,20 +9745,48 @@ create policy "app access" on critical_path
   const LOCK = window.CRITICAL_PATH_LOCK || null;
   let GATE_OPEN = !LOCK || CLOUD_ON;      // already connected? then nothing to unlock
 
+  // The lock this tab started with, which a newer publish may have superseded while the
+  // tab sat open. Everything unlocks against this rather than against LOCK, so picking
+  // up a newer one is a matter of assigning to it.
+  let LIVE_LOCK = LOCK;
+
+  // Re-read the page this tab was served from and take the lock out of it. Only useful
+  // on a published copy: a file opened off a disk has nowhere newer to look.
+  async function refreshLock(){
+    if(!LOCK || !/^https?:$/.test(location.protocol)) return false;
+    try {
+      const res = await fetch(location.href, { cache: 'reload' });
+      if(!res.ok) return false;
+      const m = (await res.text()).match(/window\.CRITICAL_PATH_LOCK = ([^;]*);/);
+      if(!m) return false;
+      const blob = JSON.parse(m[1]);
+      if(!blob || !blob.salt || !blob.iv || !blob.ct) return false;
+      if(LIVE_LOCK && blob.ct === LIVE_LOCK.ct) return false;   // same one we already hold
+      LIVE_LOCK = blob;
+      return true;
+    } catch(_){ return false; }
+  }
+
   async function gateUnlock(pass){
-    if(!LOCK) return false;
-    const key = await deriveKey(pass, fromB64(LOCK.salt));
-    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(LOCK.iv) },
-                                            key, fromB64(LOCK.ct));
+    if(!LIVE_LOCK) return false;
+    const key = await deriveKey(pass, fromB64(LIVE_LOCK.salt));
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(LIVE_LOCK.iv) },
+                                            key, fromB64(LIVE_LOCK.ct));
     const cfg = JSON.parse(TXT_DEC.decode(pt));
     if(!cfg || !cfg.supabaseUrl || !cfg.supabaseKey) throw new Error('nothing in there');
     setCloudConfig(cfg.supabaseUrl, cfg.supabaseKey);   // remembered from here on
     return true;
   }
 
-  function gateShow(){
+  function gateShow(why){
     const el = document.getElementById('siteGate');
     if(!el) return;
+    // On the ordinary first visit there is nothing to explain, so the usual line stands.
+    // When the page is asking a second time there very much is, and it takes its place.
+    const intro = document.getElementById('gateIntro');
+    const box = document.getElementById('gateWhy');
+    if(box){ box.textContent = why || ''; box.hidden = !why; }
+    if(intro) intro.hidden = !!why;
     el.hidden = false;
     const inp = document.getElementById('gateInput');
     if(inp) setTimeout(() => inp.focus(), 50);
@@ -9715,7 +9815,17 @@ create policy "app access" on critical_path
       document.getElementById('siteGate').hidden = true;
       status.textContent = '';
       inp.value = '';
+      // Coming back from a refused key: what is on the board was typed after the last
+      // write that got through, so it goes up before anything is read back down —
+      // otherwise the read would put the older stored copy on top of it. Only the
+      // partners actually touched are sent, so nobody else's work is disturbed.
+      const resuming = keyDead;
+      keyDead = false;
       try {
+        if(resuming && cloudReady && (pendingSaves.size || pendingDeletes.size)){
+          writeFails = 0;
+          await flushSaves();
+        }
         await cloudInit();
         if(clSpreadAll()){ markDirty(); queueSaveAll(); renderMain(); }
         applyCloudChrome();
