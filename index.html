@@ -1424,8 +1424,8 @@
 
   <div class="toolbar">
     <button id="saveAppBtn" class="save-btn" hidden="">⤓ Save My Tracker</button>
-    <button id="autoSaveBtn" hidden="" title="Pick a file once, then every change is written straight back to it.">⟳ Auto-Save: Off</button>
-    <span id="syncStatus" class="sync-status"><i class="sync-dot dot-ok"></i>Saved 104 hours ago</span>
+    <button id="autoSaveBtn" title="Pick a file once, then every change is written straight back to it." hidden="">⟳ Auto-Save: Off</button>
+    <span id="syncStatus" class="sync-status"><i class="sync-dot dot-ok"></i>Shared — nothing changed yet</span>
     <span id="saveStatus" class="save-status"></span>
     <button id="themeBtn" class="theme-btn" title="Switch between light and dark">☀ Light</button>
   </div>
@@ -1464,7 +1464,7 @@
       <button class="jobbar-btn primary" id="addJobToggle" aria-expanded="false" title="Put a job on a trade partner's board, or keep the job list">+ New job</button>
       <!-- Still here, and still the thing everything is wired to — just not on show.
            The button inside the Active jobs panel presses this one. -->
-      <button class="jobbar-btn" id="jcToggle" aria-expanded="false" hidden="" title="Tidy the job list that feeds the dropdowns">Clean up the job list<span class="jc-badge" id="jcBadge">28 names, nothing to fold</span></button>
+      <button class="jobbar-btn" id="jcToggle" aria-expanded="false" hidden="" title="Tidy the job list that feeds the dropdowns">Clean up the job list<span class="jc-badge" id="jcBadge">the list is empty</span></button>
       <button class="jobbar-btn primary" id="addPartnerBtn" title="Add a crew that is not on the list yet">+ Add Trade Partner</button>
       <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" hidden="" data-help-folded="1">
         <b>New job</b> puts a house on a trade partner's board and keeps the list of job
@@ -1544,7 +1544,7 @@
     <div class="app-layout">
       <div class="sidebar card">
         <button id="partnerToggle" class="partner-toggle" aria-expanded="false">
-          <span id="partnerToggleName">34. Precision Cleaning Services</span><span class="chev">▾</span>
+          <span id="partnerToggleName">1. Holberts Grading</span><span class="chev">▾</span>
         </button>
         <div class="sidebar-body" id="sidebarBody">
           <input type="text" id="partnerSearch" placeholder="Search trade partners…" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
@@ -1580,7 +1580,7 @@
       </div>
     </div>
 
-    <div class="ri-conflict" id="riConflict" data-sig="framing|ramero martinez|19|20;framing|ramero martinez|19|22;framing|ramero martinez|19|24;framing|ramero martinez|20|22;framing|ramero martinez|20|24;hvac|cool cats|19|21" hidden="">
+    <div class="ri-conflict" id="riConflict" data-sig="framing|ramero martinez|10|11;framing|ramero martinez|10|13;framing|ramero martinez|10|15;framing|ramero martinez|11|13;framing|ramero martinez|11|15;hvac|cool cats|10|12" hidden="">
       <div class="ri-conflict-head">
         <span class="ri-conflict-icon">!</span>
         <span id="riConflictSummary"></span>
@@ -1886,7 +1886,7 @@
         <button id="disconnectBtn" class="danger-ghost">Turn Sharing Off</button>
       </div>
       <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" hidden="" data-help-folded="1">Send that downloaded file to anyone who needs to edit the schedule — by email, Teams, or SharePoint. When they open it, they're looking at the same live schedule you are.</p>
-      <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" id="hostedNote" hidden="" data-help-folded="1"><b>This copy is published at a web address.</b> The connection is written into the page itself, so anyone you send the link to is on the shared schedule the moment they open it — nothing to paste.</p>
+      <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" id="hostedNote" data-help-folded="1"><b>This copy is published at a web address.</b> A page on a server cannot rewrite itself, so this browser is remembering the connection for you — it will still be here after a refresh, but anyone else opening the link has to paste the two values once. To spare them that: press <b>Download Copy to Send Your Team</b>, rename the downloaded file <b>index.html</b>, and put it back where this page is published. After that the link alone is enough.</p>
     </div>
 
     <div class="card" id="gateCard">
@@ -1963,7 +1963,7 @@ create policy "app access" on critical_path
           <input type="text" id="cfgKey" class="setup-input" placeholder="sb_publishable_… or eyJhbGciOi…" autocomplete="off" spellcheck="false" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
           <div class="setup-actions">
             <button class="primary" id="connectBtn">Connect</button>
-            <span id="connectStatus" class="connect-status"></span>
+            <span id="connectStatus" class="connect-status ok">Done. Sharing is on.</span>
           </div>
         </div>
       </div>
@@ -1984,7 +1984,7 @@ create policy "app access" on critical_path
 <script id="appConfig">window.CRITICAL_PATH_CONFIG = {"supabaseUrl":"","supabaseKey":""};</script>
 <!-- Set when the page is locked with a team password. It holds the connection
      details encrypted with that password — useless without it. -->
-<script id="appLock">window.CRITICAL_PATH_LOCK = {"v":1,"salt":"DDk8NLa/uzqCWJRpsUHZNA==","iv":"Q6l/7gW764m5OkY6","ct":"cGZPiINoZtQkbsjQbcZa5Qkg9cR03zPbZ3kXDB73c7ZE9gC4l9o554m6aLs2BA1py61uTWNDRa71YTzdUXWCJBNgI4pSdd7BswoByDuvSjcKxufOeb4pnYUqDMAmlFJ0Xv5/Kc/XjrbhduIUjeD0pNchwK9uo8ZJATc9F+1Z2hqUz5l27j55mBk="};</script>
+<script id="appLock">window.CRITICAL_PATH_LOCK = {"v":1,"salt":"FmruNeF3H/+kK5vB3ueXog==","iv":"Aajf736AG//Sj8k+","ct":"+oQIEecCMrVpqenvBMz7/d8UvxSBcKmcbcRsUG0e0VsZTItCItHP5cAIHwGMwHckNs81m5dhoOMmvklXCkzYMCO0Vt/1nswJ05Bs1sbqcDjQuHcV8f4Psr6twtKZBw82kJawPAs/Ls7Okvl4zi/cxEJjzyjKxYrUZI86h9Oh0Wr3SdrRYikKjH8="};</script>
 
 <script>
 (function(){
