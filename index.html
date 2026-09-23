@@ -1090,17 +1090,6 @@
   .ri-bar-fill { background: var(--seq-450); height: 100%; border-radius: 4px; }
   .ri-bar-row .bar-value { font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 600; }
 
-  /* conflict banner */
-  .ri-conflict { background: var(--warn-plane); border: 1px solid var(--alert-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
-  .ri-conflict-head { display: flex; align-items: center; gap: 10px; }
-  .ri-conflict-icon { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--alert-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; }
-  #riConflictSummary { flex: 1; font-size: 13px; font-weight: 700; color: var(--danger-text); }
-  .ri-conflict-details { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--alert-border); display: flex; flex-direction: column; gap: 6px; }
-  .ri-conflict-line { font-size: 12.5px; color: var(--text-secondary); }
-  .ri-conflict-line b { color: var(--danger-text); }
-  .ri-conflict-x { color: var(--alert-accent); margin: 0 4px; font-weight: 700; }
-  .ri-badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--alert-accent); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; cursor: pointer; }
-  .ri-badge:hover { background: var(--alert-accent-hover); transform: scale(1.12); }
   .ri-name-wrap { display: flex; align-items: center; gap: 3px; min-width: 128px; }
   .ri-name-wrap .ri-cell { flex: 1 1 auto; min-width: 90px; }
 
@@ -1586,14 +1575,6 @@
       </div>
     </div>
 
-    <div class="ri-conflict" id="riConflict" data-sig="framing|ramero martinez|10|11;framing|ramero martinez|10|13;framing|ramero martinez|10|15;framing|ramero martinez|11|13;framing|ramero martinez|11|15;hvac|cool cats|10|12" hidden="">
-      <div class="ri-conflict-head">
-        <span class="ri-conflict-icon">!</span>
-        <span id="riConflictSummary"></span>
-        <button id="riConflictDismiss" class="danger-ghost">✕</button>
-      </div>
-      <div id="riConflictDetails" class="ri-conflict-details"></div>
-    </div>
 
     <div class="ri-stats" id="riStats"></div>
 
@@ -1613,8 +1594,8 @@
         <span><span class="swatch" style="background:var(--series-4)"></span>Electrical</span>
       </div>
       <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" style="margin:-4px 0 12px 0" hidden="" data-help-folded="1">
-        Click any trade's <b>Start</b> heading to sort the lots by that date. Click a
-        conflict's <b>!</b> badge to dismiss it. A cell with a blue tint came from the
+        Click any trade's <b>Start</b> heading to sort the lots by that date.
+        A cell with a blue tint came from the
         critical path — type over it and it becomes yours, and stops updating.
       </p>
       <div class="ri-scroll">
@@ -6063,13 +6044,12 @@ create policy "app access" on critical_path
     document.getElementById('partnerList').innerHTML = '';
     document.getElementById('catLegend').innerHTML = '';
     // the Rough-In tab is rebuilt from data on load too
-    ['riBody','riStats','riPartnerGrid','riBarChart','riConflictDetails','riConflictSummary',
+    ['riBody','riStats','riPartnerGrid','riBarChart',
      'linkSummary','linkTable','ri-dl-builders','ri-dl-framers','ri-dl-plumbers','ri-dl-hvac',
      'ri-dl-electrical','ri-dl-cplots','riNewLots','cp-dl-leaders','ajLeaderManage',
      'riAskBar','riLockBar','coAskBar','ajJobManage','jvBody','jvHead','jvCount','jvJob','connectedWhere'].forEach(id => {
       const el = document.getElementById(id); if(el) el.innerHTML = '';
     });
-    document.getElementById('riConflict').hidden = true;
     document.getElementById('riNewLots').hidden = true;
     document.getElementById('riAskBar').hidden = true;
     document.getElementById('riLockBar').hidden = true;
@@ -6351,9 +6331,6 @@ create policy "app access" on critical_path
   let riNextId = 1;
   let riSort = { trade: null, dir: 'asc' };
   let riHideCompleted = false;
-  let riConflicts = [];
-  let riDismissed = new Set();
-  let riDismissedSig = null;
 
   function riBlankRow(){
     const mk = () => ({ name: '', start: '', complete: '' });
@@ -6821,81 +6798,11 @@ create policy "app access" on critical_path
     return `${n} <span style="font-size:11px;color:var(--text-muted)">d</span>`;
   }
 
-  // ---------- conflicts ----------
-  function riFmtShort(s){
-    if(!s) return '?';
-    const d = new Date(s + 'T00:00:00Z');
-    if(isNaN(d)) return '?';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-  }
-
-  function riComputeConflicts(){
-    const found = [];
-    RI_TRADES.forEach(trade => {
-      const groups = {};
-      RI_ROWS.forEach(row => {
-        const name = (row[trade].name || '').trim();
-        if(!name || !row[trade].start) return;
-        const k = name.toLowerCase();
-        (groups[k] = groups[k] || []).push(row);
-      });
-      Object.values(groups).forEach(rows => {
-        for(let i = 0; i < rows.length; i++){
-          for(let j = i + 1; j < rows.length; j++){
-            const a = rows[i], b = rows[j];
-            const aS = a[trade].start, aE = a[trade].complete || a[trade].start;
-            const bS = b[trade].start, bE = b[trade].complete || b[trade].start;
-            if(aS <= bE && bS <= aE){
-              found.push({ trade, crew: a[trade].name.trim(),
-                           rowIdA: a.id, jobA: a.job || '(unnamed lot)', startA: aS, endA: aE,
-                           rowIdB: b.id, jobB: b.job || '(unnamed lot)', startB: bS, endB: bE });
-            }
-          }
-        }
-      });
-    });
-    return found;
-  }
-
-  function riConflictKey(c){
-    return [c.trade, c.crew.toLowerCase(), c.rowIdA, c.rowIdB, c.startA, c.endA, c.startB, c.endB].join('|');
-  }
-  function riConflictsForRow(id, trade){
-    return riConflicts.filter(c => c.trade === trade && (c.rowIdA === id || c.rowIdB === id));
-  }
-  function riTooltip(id, list){
-    const others = list.map(c => {
-      const j = c.rowIdA === id ? c.jobB : c.jobA;
-      const s = c.rowIdA === id ? c.startB : c.startA;
-      const e = c.rowIdA === id ? c.endB : c.endA;
-      return `${j} (${riFmtShort(s)}–${riFmtShort(e)})`;
-    }).join('; ');
-    return `Scheduling conflict: ${list[0].crew} is also scheduled on ${others} (click to dismiss)`;
-  }
-  function riBadge(id, trade){
-    const list = riConflictsForRow(id, trade);
-    return list.length ? `<span class="ri-badge" title="${esc(riTooltip(id, list))}">!</span>` : '';
-  }
-
-  function riRenderConflicts(){
-    const banner = document.getElementById('riConflict');
-    if(!riConflicts.length){ banner.hidden = true; riDismissedSig = null; return; }
-    const sig = riConflicts.map(c => [c.trade, c.crew.toLowerCase(), c.rowIdA, c.rowIdB].join('|')).sort().join(';');
-    document.getElementById('riConflictSummary').textContent =
-      `${riConflicts.length} scheduling conflict${riConflicts.length === 1 ? '' : 's'} — same crew double-booked on overlapping dates.`;
-    document.getElementById('riConflictDetails').innerHTML = riConflicts.map(c => `
-      <div class="ri-conflict-line"><b>${esc(RI_TRADE_LABEL[c.trade])} — ${esc(c.crew)}:</b>
-        ${esc(c.jobA)} (${riFmtShort(c.startA)}–${riFmtShort(c.endA)})
-        <span class="ri-conflict-x">↔</span>
-        ${esc(c.jobB)} (${riFmtShort(c.startB)}–${riFmtShort(c.endB)})</div>`).join('');
-    banner.dataset.sig = sig;
-    if(sig !== riDismissedSig) banner.hidden = false;
-  }
-
-  function riRefreshConflicts(){
-    riConflicts = riComputeConflicts().filter(c => !riDismissed.has(riConflictKey(c)));
-    riRenderConflicts();
-  }
+  // Double-booking warnings used to live here. They compared two lots that shared a
+  // crew name and overlapping dates, which reads a trade partner as one crew — and most
+  // of these run several. The warning fired on ordinary weeks, so it went. riRefreshConflicts
+  // stays as a no-op because the render path still calls it.
+  function riRefreshConflicts(){}
 
   // ---------- rendering ----------
   function riSorted(){
@@ -6926,7 +6833,7 @@ create policy "app access" on critical_path
       const tradeCells = RI_TRADES.map(t => {
         const dl = { framing: 'ri-dl-framers', plumbing: 'ri-dl-plumbers', hvac: 'ri-dl-hvac', electrical: 'ri-dl-electrical' }[t];
         return `
-        <td class="group-${t} ri-tint-${t}"><div class="ri-name-wrap" data-trade="${t}"><input class="ri-cell${riCellCls(row[t].nameSrc)}" data-field="${t}.name" list="${dl}" value="${esc(row[t].name)}">${riBadge(row.id, t)}</div></td>
+        <td class="group-${t} ri-tint-${t}"><div class="ri-name-wrap" data-trade="${t}"><input class="ri-cell${riCellCls(row[t].nameSrc)}" data-field="${t}.name" list="${dl}" value="${esc(row[t].name)}"></div></td>
         <td class="ri-tint-${t}"><div class="ri-datewrap"><input class="ri-cell${row[t].startLock ? '' : riCellCls(row[t].startSrc)}" type="date" data-field="${t}.start" value="${row[t].start || ''}"><button class="ri-pin${row[t].startLock ? ' on' : (waiting.has(row.id + '|' + t) ? ' due' : '')}" data-ri-pin="${t}" title="${row[t].startLock ? 'Locked in — click to let it follow the plan again' : (waiting.has(row.id + '|' + t) ? 'Waiting on an answer — click to lock this day in' : (row[t].startFollow ? 'Following the plan — click to lock this day in' : 'Lock this start date in'))}">${row[t].startLock ? '&#128274;' : '&#128275;'}</button></div></td>
         <td class="ri-tint-${t}"><input class="ri-cell" type="date" data-field="${t}.complete" value="${row[t].complete || ''}"></td>
         <td class="ri-calc ri-tint-${t}">${riFmt(c[t + 'Days'])}</td>`;
@@ -7340,15 +7247,6 @@ create policy "app access" on critical_path
       riRenderTable(); riRenderStats(); riRenderPartners(); riRenderBars(); riRenderLockAsk();
       return;
     }
-    const badge = e.target.closest('.ri-badge');
-    if(badge){
-      const tr = badge.closest('tr'), wrap = badge.closest('.ri-name-wrap');
-      const id = Number(tr.dataset.id), trade = wrap.dataset.trade;
-      riConflictsForRow(id, trade).forEach(c => riDismissed.add(riConflictKey(c)));
-      riRefreshConflicts();
-      riRenderTable();
-      return;
-    }
     if(!e.target.classList.contains('del-btn')) return;
     const tr = e.target.closest('tr');
     const row = RI_ROWS.find(r => r.id === Number(tr.dataset.id));
@@ -7368,12 +7266,6 @@ create policy "app access" on critical_path
   document.getElementById('riToggleCompletedBtn').addEventListener('click', () => {
     riHideCompleted = !riHideCompleted;
     riRenderTable();
-  });
-
-  document.getElementById('riConflictDismiss').addEventListener('click', () => {
-    const b = document.getElementById('riConflict');
-    riDismissedSig = b.dataset.sig || null;
-    b.hidden = true;
   });
 
   document.querySelectorAll('#riTable th.sortable').forEach(th => {
