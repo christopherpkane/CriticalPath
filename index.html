@@ -1031,7 +1031,12 @@
   }
   #riTable th.sortable { cursor: pointer; user-select: none; }
   #riTable th.sortable:hover { color: var(--series-1); }
-  #riTable .sort-arrow { display: inline-block; width: 10px; font-size: 10px; color: var(--series-1); }
+  #riTable .sort-arrow { display: inline-block; width: 12px; margin-left: 3px; font-size: 10px; color: var(--series-1); }
+  /* Idle headings carry a faint arrow so it is plain they can all be clicked; the one
+     actually in use shows which way it is pointing. */
+  #riTable th.sortable .sort-arrow { color: var(--text-muted); opacity: .5; font-weight: 400; }
+  #riTable th.sortable.on { color: var(--series-1); }
+  #riTable th.sortable.on .sort-arrow { color: var(--series-1); opacity: 1; }
   #riTable tbody td { padding: 4px 6px; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
   #riTable td.sticky-1, #riTable th.sticky-1 { position: sticky; left: 0; z-index: 2; background: var(--surface-1); }
   #riTable td.sticky-2, #riTable th.sticky-2 { position: sticky; left: 64px; z-index: 2; background: var(--surface-1); }
@@ -1594,7 +1599,8 @@
         <span><span class="swatch" style="background:var(--series-4)"></span>Electrical</span>
       </div>
       <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" style="margin:-4px 0 12px 0" hidden="" data-help-folded="1">
-        Click any trade's <b>Start</b> heading to sort the lots by that date.
+        Click any heading to sort the lots by that column, and again to reverse it.
+        Anything not filled in yet stays at the bottom either way.
         A cell with a blue tint came from the
         critical path — type over it and it becomes yours, and stops updating.
       </p>
@@ -1610,28 +1616,28 @@
               <th colspan="3"></th>
             </tr>
             <tr>
-              <th>Status</th>
-              <th class="sticky-1">CL</th>
-              <th class="sticky-2">Job Name</th>
-              <th>House Plan</th>
-              <th class="group-framing ri-tint-framing">Framer</th>
-              <th class="ri-tint-framing sortable" data-risort="framing">Start<span class="sort-arrow" id="ri-arrow-framing"></span></th>
-              <th class="ri-tint-framing">Complete</th>
-              <th class="ri-tint-framing">Days</th>
-              <th class="group-plumbing ri-tint-plumbing">Plumber</th>
-              <th class="ri-tint-plumbing sortable" data-risort="plumbing">Start<span class="sort-arrow" id="ri-arrow-plumbing"></span></th>
-              <th class="ri-tint-plumbing">Complete</th>
-              <th class="ri-tint-plumbing">Days</th>
-              <th class="group-hvac ri-tint-hvac">HVAC Co.</th>
-              <th class="ri-tint-hvac sortable" data-risort="hvac">Start<span class="sort-arrow" id="ri-arrow-hvac"></span></th>
-              <th class="ri-tint-hvac">Complete</th>
-              <th class="ri-tint-hvac">Days</th>
-              <th class="group-electrical ri-tint-electrical">Electrician</th>
-              <th class="ri-tint-electrical sortable" data-risort="electrical">Start<span class="sort-arrow" id="ri-arrow-electrical"></span></th>
-              <th class="ri-tint-electrical">Complete</th>
-              <th class="ri-tint-electrical">Days</th>
-              <th>Rough-In Days</th>
-              <th>Total Days</th>
+              <th class="sortable" data-risort="status">Status<span class="sort-arrow"></span></th>
+              <th class="sticky-1 sortable" data-risort="cl">CL<span class="sort-arrow"></span></th>
+              <th class="sticky-2 sortable" data-risort="job">Job Name<span class="sort-arrow"></span></th>
+              <th class="sortable" data-risort="plan">House Plan<span class="sort-arrow"></span></th>
+              <th class="group-framing ri-tint-framing sortable" data-risort="framing.name">Framer<span class="sort-arrow"></span></th>
+              <th class="ri-tint-framing sortable" data-risort="framing">Start<span class="sort-arrow"></span></th>
+              <th class="ri-tint-framing sortable" data-risort="framing.complete">Complete<span class="sort-arrow"></span></th>
+              <th class="ri-tint-framing sortable" data-risort="framing.days">Days<span class="sort-arrow"></span></th>
+              <th class="group-plumbing ri-tint-plumbing sortable" data-risort="plumbing.name">Plumber<span class="sort-arrow"></span></th>
+              <th class="ri-tint-plumbing sortable" data-risort="plumbing">Start<span class="sort-arrow"></span></th>
+              <th class="ri-tint-plumbing sortable" data-risort="plumbing.complete">Complete<span class="sort-arrow"></span></th>
+              <th class="ri-tint-plumbing sortable" data-risort="plumbing.days">Days<span class="sort-arrow"></span></th>
+              <th class="group-hvac ri-tint-hvac sortable" data-risort="hvac.name">HVAC Co.<span class="sort-arrow"></span></th>
+              <th class="ri-tint-hvac sortable" data-risort="hvac">Start<span class="sort-arrow"></span></th>
+              <th class="ri-tint-hvac sortable" data-risort="hvac.complete">Complete<span class="sort-arrow"></span></th>
+              <th class="ri-tint-hvac sortable" data-risort="hvac.days">Days<span class="sort-arrow"></span></th>
+              <th class="group-electrical ri-tint-electrical sortable" data-risort="electrical.name">Electrician<span class="sort-arrow"></span></th>
+              <th class="ri-tint-electrical sortable" data-risort="electrical">Start<span class="sort-arrow"></span></th>
+              <th class="ri-tint-electrical sortable" data-risort="electrical.complete">Complete<span class="sort-arrow"></span></th>
+              <th class="ri-tint-electrical sortable" data-risort="electrical.days">Days<span class="sort-arrow"></span></th>
+              <th class="sortable" data-risort="roughInDays">Rough-In Days<span class="sort-arrow"></span></th>
+              <th class="sortable" data-risort="totalDays">Total Days<span class="sort-arrow"></span></th>
               <th></th>
             </tr>
           </thead>
@@ -6095,7 +6101,10 @@ create policy "app access" on critical_path
     // the question is about a cell that no longer has focus in a fresh copy
     durClose();
     document.getElementById('durAskChk').checked = DAYS_ASK_ON;
-    RI_TRADES.forEach(t => { const a = document.getElementById('ri-arrow-' + t); if(a) a.textContent = ''; });
+    document.querySelectorAll('#riTable th.sortable').forEach(th => {
+      th.classList.remove('on');
+      const a = th.querySelector('.sort-arrow'); if(a) a.textContent = '';
+    });
     selectEl.innerHTML = '';
     delete selectEl.dataset.stamp;
     previewEl.removeAttribute('src');
@@ -6329,7 +6338,7 @@ create policy "app access" on critical_path
 
   let RI_ROWS = [];
   let riNextId = 1;
-  let riSort = { trade: null, dir: 'asc' };
+  let riSort = { key: null, dir: 'asc' };
   let riHideCompleted = false;
 
   function riBlankRow(){
@@ -6805,16 +6814,50 @@ create policy "app access" on critical_path
   function riRefreshConflicts(){}
 
   // ---------- rendering ----------
+  // Each column says how to read its value out of a row and what kind of thing that
+  // value is, so one comparison covers all of them. Status sorts by where a house has
+  // got to rather than by the first letter of the word, which is the only order anybody
+  // would want out of it.
+  const RI_STATUS_RANK = { 'not-started': 0, framing: 1, roughin: 2, complete: 3 };
+  const RI_SORT_KEYS = {
+    status:      { kind: 'num',  read: (r, c) => RI_STATUS_RANK[c.status] },
+    cl:          { kind: 'text', read: r => r.cl },
+    job:         { kind: 'text', read: r => r.job },
+    plan:        { kind: 'text', read: r => r.plan },
+    roughInDays: { kind: 'num',  read: (r, c) => c.roughInDays },
+    totalDays:   { kind: 'num',  read: (r, c) => c.totalDays }
+  };
+  RI_TRADES.forEach(t => {
+    RI_SORT_KEYS[t + '.name']     = { kind: 'text', read: r => r[t].name };
+    RI_SORT_KEYS[t]               = { kind: 'date', read: r => r[t].start };
+    RI_SORT_KEYS[t + '.complete'] = { kind: 'date', read: r => r[t].complete };
+    RI_SORT_KEYS[t + '.days']     = { kind: 'num',  read: (r, c) => c[t + 'Days'] };
+  });
+
   function riSorted(){
-    if(!riSort.trade) return RI_ROWS.slice();
-    const { trade, dir } = riSort;
-    const withD = [], withoutD = [];
-    RI_ROWS.forEach(r => (r[trade].start ? withD : withoutD).push(r));
-    withD.sort((a, b) => {
-      const c = a[trade].start < b[trade].start ? -1 : a[trade].start > b[trade].start ? 1 : 0;
-      return dir === 'asc' ? c : -c;
+    const spec = RI_SORT_KEYS[riSort.key];
+    if(!spec) return RI_ROWS.slice();
+    const dir = riSort.dir === 'asc' ? 1 : -1;
+    // A lot with nothing in the column is not last-in-order, it is not-yet-filled-in.
+    // It belongs at the bottom either way round, or reversing the sort buries the rows
+    // somebody actually wants to look at.
+    const filled = [], blank = [];
+    RI_ROWS.forEach(r => {
+      const v = spec.read(r, riCompute(r));
+      const empty = v === null || v === undefined || v === ''
+                 || (spec.kind === 'num' && isNaN(v));
+      (empty ? blank : filled).push({ r: r, v: v });
     });
-    return withD.concat(withoutD);
+    filled.sort((a, b) => {
+      let c;
+      if(spec.kind === 'num') c = a.v - b.v;
+      // numeric:true so "Lot 9" comes before "Lot 10" instead of after it
+      else if(spec.kind === 'text') c = String(a.v).localeCompare(String(b.v), undefined,
+                                        { sensitivity: 'base', numeric: true });
+      else c = a.v < b.v ? -1 : a.v > b.v ? 1 : 0;      // yyyy-mm-dd already sorts as text
+      return c * dir;
+    });
+    return filled.map(x => x.r).concat(blank.map(x => x.r));
   }
 
   function riVisible(){
@@ -6855,9 +6898,11 @@ create policy "app access" on critical_path
         <td><button class="del-btn" title="Delete lot">✕</button></td>
       </tr>`;
     }).join('');
-    RI_TRADES.forEach(t => {
-      const el = document.getElementById('ri-arrow-' + t);
-      if(el) el.textContent = riSort.trade === t ? (riSort.dir === 'asc' ? '▲' : '▼') : '';
+    document.querySelectorAll('#riTable th.sortable').forEach(th => {
+      const on = th.dataset.risort === riSort.key;
+      const el = th.querySelector('.sort-arrow');
+      if(el) el.textContent = on ? (riSort.dir === 'asc' ? '▲' : '▼') : '⇅';
+      th.classList.toggle('on', on);
     });
     const done = RI_ROWS.filter(r => riCompute(r).status === 'complete').length;
     document.getElementById('riToggleCompletedBtn').textContent =
@@ -7270,9 +7315,11 @@ create policy "app access" on critical_path
 
   document.querySelectorAll('#riTable th.sortable').forEach(th => {
     th.addEventListener('click', () => {
-      const trade = th.dataset.risort;
-      if(riSort.trade === trade) riSort.dir = riSort.dir === 'asc' ? 'desc' : 'asc';
-      else { riSort.trade = trade; riSort.dir = 'asc'; }
+      const key = th.dataset.risort;
+      // Clicking the heading already in use turns the sort round; clicking a different
+      // one starts that column off going up.
+      if(riSort.key === key) riSort.dir = riSort.dir === 'asc' ? 'desc' : 'asc';
+      else { riSort.key = key; riSort.dir = 'asc'; }
       riRenderTable();
     });
   });
