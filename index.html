@@ -6492,6 +6492,13 @@ create policy "app access" on critical_path
     if(!n) return { link: '', state: 'none' };
     const bases = riLotBases();
     if(bases.indexOf(n) !== -1) return { link: n, state: 'ok' };
+    // The board knows a lot by its base, not by whatever was typed into the cell. Read
+    // this row the same way before giving up on it — otherwise "Earlybird Lot" is hunted
+    // for in a list that only ever contained "earlybird", and a lot added here by hand
+    // can never pick itself up once the house reaches a framing board. Same reading the
+    // job-name box already uses, so both routes now agree.
+    const base = riLotBases.baseOf(lotName);
+    if(base && base !== n && bases.indexOf(base) !== -1) return { link: base, state: 'ok' };
     let best = '', bestD = 99;
     bases.forEach(b => { const d = riEditDist(n, b); if(d < bestD){ bestD = d; best = b; } });
     // a near miss is a suggestion, never a silent decision — "Laflure"/"LaFleur" yes,
