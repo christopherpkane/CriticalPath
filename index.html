@@ -6385,21 +6385,54 @@ create policy "app access" on critical_path
   // live = true reads the four weeks exactly as they stand today, ignoring the day
   // this job was first caught on that board. That is what a job still waiting to start
   // wants: the plan, moving as the plan moves.
+  // A column heading says what the work is. Most crews do one trade and call their
+  // columns "Job 1", so the partner's own trade is the answer — but 1st Choice runs HVAC
+  // and electrical off one board under "HVAC Rough" and "Elec. Rough", and the heading is
+  // the only thing that tells those apart.
+  const RI_COL_TRADE = [
+    [/\belec/i,             'electrical'],
+    [/\bhvac\b|mechanical/i, 'hvac'],
+    [/plumb/i,              'plumbing'],
+    [/\bfram/i,             'framing']
+  ];
+
+  // Headings for work that is not the rough-in: the trim-out and final visits, the temp
+  // pole, odd jobs, and the parking column crews keep for work with no date yet. Those
+  // are real days, but they are not the day the rough-in started — and because the
+  // tracker takes the earliest day it finds for a trade, letting them through drags a
+  // start date earlier than the crew ever turned up. Checked before the trade, so
+  // "HVAC Final" is read as a final and not as HVAC.
+  const RI_COL_NOT_ROUGH = /final|trim|punch|misc|t[\s.\-]?pole|upcoming/i;
+
+  function riColTrade(colName, fallback){
+    const c = String(colName || '');
+    if(RI_COL_NOT_ROUGH.test(c)) return '';
+    for(let i = 0; i < RI_COL_TRADE.length; i++){
+      if(RI_COL_TRADE[i][0].test(c)) return RI_COL_TRADE[i][1];
+    }
+    return fallback;
+  }
+
   function riBoardJobs(live){
     const out = [];
     sortedPartnerIds().forEach(pid => {
       const p = PARTNERS[pid];
       if(!p || !RI_TRADES.includes(p.category)) return;
-      (p.weeks || []).forEach(w => (w.days || []).forEach(d => {
-        if(!d.date) return;
-        const iso = String(d.date).slice(0, 10);
-        (d.jobs || []).forEach(j => {
-          if(!j || !j.trim()) return;
-          // the day it was really on this board beats the day the grid says today
-          const caught = live ? '' : seenStart(j, [pid]);
-          out.push({ name: j.trim(), date: caught || iso, cat: p.category, partner: p.name || '' });
+      (p.weeks || []).forEach(w => {
+        const cols = w.jobNames || [];
+        (w.days || []).forEach(d => {
+          if(!d.date) return;
+          const iso = String(d.date).slice(0, 10);
+          (d.jobs || []).forEach((j, ji) => {
+            if(!j || !j.trim()) return;
+            const cat = riColTrade(cols[ji], p.category);
+            if(!cat) return;          // a final, trim-out or parking column, not the rough-in
+            // the day it was really on this board beats the day the grid says today
+            const caught = live ? '' : seenStart(j, [pid]);
+            out.push({ name: j.trim(), date: caught || iso, cat: cat, partner: p.name || '' });
+          });
         });
-      }));
+      });
     });
     return out;
   }
