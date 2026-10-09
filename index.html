@@ -440,6 +440,64 @@
   .jv-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
   .jv-legend i.idlekey { background: color-mix(in srgb, var(--status-warn) 30%, transparent); }
 
+  /* the all-jobs dashboard */
+  .jv-dash-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .jv-dash-head h2 { margin: 0; }
+  .jv-dash-sum { font-size: 12.5px; color: var(--text-secondary); }
+  .jv-dash-sum b { color: var(--danger-text); }
+  .jv-dash-ctl { display: flex; align-items: center; gap: 12px; font-size: 12.5px;
+                 color: var(--text-secondary); margin: -4px 0 0 0; }
+  .jv-dash-ctl select { font-family: inherit; font-size: 12.5px; padding: 3px 6px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--page-plane); color: var(--text-primary); }
+  .jv-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 9px; margin-top: 12px; }
+  .jv-tile {
+    text-align: left; font-family: inherit; cursor: pointer; padding: 8px 9px 7px 9px;
+    border: 1px solid var(--border); border-left: 3px solid transparent; border-radius: 9px;
+    background: var(--surface-1); color: var(--text-primary); display: block; width: 100%;
+  }
+  /* Anything not flagged needs no attention, so it recedes — including the houses with a
+     day or two of ordinary breathing room. Hovering brings one back. */
+  .jv-tile.clean { opacity: .5; }
+  .jv-tile:hover { opacity: 1; border-color: var(--series-1); }
+  .jv-tile.flagged { border-left-color: var(--status-warn); }
+  .jv-tile.on { border-color: var(--series-1); opacity: 1; }
+  .jv-tile-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .jv-tile-name { font-weight: 700; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jv-tile-cl { font-size: 10.5px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+  .jv-strip { display: grid; grid-template-columns: repeat(20, 1fr); gap: 1px; height: 20px; }
+  /* Three states only: not this house's time, somebody on it, nobody on it. The trade
+     doing the work is not the question being asked here, and colouring it was what made
+     a screenful of these unreadable. */
+  /* Mixed against the tile rather than set flat, so "light grey" stays light grey on the
+     dark theme as well as the light one. */
+  .jv-c { border-radius: 2px;
+          background: color-mix(in srgb, var(--text-muted) 32%, var(--surface-1)); }
+  /* A rule between the weeks. Drawn with a shadow rather than a border so it does not
+     take width off the day it sits against and throw the twenty columns out of step. */
+  .jv-c.wk { margin-left: 4px; box-shadow: -3px 0 0 -1px var(--text-muted); }
+  .jv-c.on { background: var(--status-good); }
+  /* Kept deliberately faint. Every tile carries the same four dates, so at full strength
+     it is a hundred labels competing with four houses that actually need looking at. */
+  .jv-scale { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 3px;
+              font-size: 9px; color: var(--text-muted); opacity: .45; }
+  .jv-scale span { text-align: left; padding-left: 1px; }
+  .jv-tile:hover .jv-scale, .jv-tile.flagged .jv-scale { opacity: .75; }
+  /* A day with nobody on it looks the same whether the house has not started, has
+     finished, or is simply quiet — one grey for "nothing scheduled". */
+  .jv-c.idle { background: color-mix(in srgb, var(--text-muted) 32%, var(--surface-1)); }
+  /* The one exception. A stretch long enough to count as a gap is the whole reason for
+     this view, so it keeps its colour while everything else goes quiet. */
+  .jv-c.bad { background: var(--status-warn); }
+  .jv-tile-foot { display: flex; margin-top: 6px; font-size: 10.5px; color: var(--text-muted); min-height: 13px; }
+  .jv-tile-foot .gap { margin-left: auto; white-space: nowrap; }
+  .jv-tile.flagged .jv-tile-foot .gap { color: var(--danger-text); font-weight: 700; }
+  /* Folded, the whole wall goes away and only its heading and count are left. */
+  .fold-card.folded .jv-dash-ctl,
+  .fold-card.folded .jv-dash-grid,
+  .fold-card.folded .help-dots,
+  .fold-card.folded .info-note { display: none; }
+  .jv-dash-none { font-size: 13px; color: var(--text-secondary); padding: 6px 2px; }
+
   /* the gaps, spelled out */
   .jv-gaps { display: flex; flex-direction: column; gap: 7px; }
   .jv-gap {
@@ -824,6 +882,11 @@
   .job-pick .jp-row.on { background: var(--page-plane); }
   .job-pick .jp-row mark { background: transparent; color: var(--series-1); font-weight: 700; }
   .job-pick .jp-none { padding: 8px 9px; font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+  /* Sticks to the bottom of the list so it is readable however far the list is scrolled. */
+  .job-pick .jp-hint {
+    position: sticky; bottom: 0; padding: 5px 9px; font-size: 11px; white-space: nowrap;
+    color: var(--text-muted); background: var(--surface-1); border-top: 1px solid var(--border);
+  }
   @media (pointer: coarse) { .job-pick .jp-row { padding: 10px 11px; font-size: 15px; } }
   @media (pointer: coarse) {
     .cell-x { opacity: .8; font-size: 17px; padding: 4px 7px; }
@@ -1674,6 +1737,33 @@
 
 
   <div id="paneJob" hidden="">
+    <div class="card fold-card">
+      <button class="fold-head" id="jvDashFold" aria-expanded="true">
+        <h2>Every Job At A Glance</h2>
+        <span class="fold-count jv-dash-sum" id="jvDashSum"></span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="jv-dash-ctl" id="jvDashCtl">
+        <label>Call it a gap at
+          <select id="jvDashGap" autocomplete="off" data-lpignore="true" data-nofill="1">
+            <option value="2">2 workdays</option>
+            <option value="3">3 workdays</option>
+            <option value="4">4 workdays</option>
+            <option value="5">5 workdays</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="jvDashOnly"> Only these</label>
+      </div>
+      <div class="jv-dash-grid" id="jvDashGrid"></div>
+      <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" style="margin:10px 0 0 0" hidden="" data-help-folded="1">
+        One strip per house, the same twenty workdays across. Green is a day with a trade
+        on it, grey is a day with nobody on it, and amber is where the empty days run
+        together past the length set above — the gaps worth chasing.
+        The dates under each strip are the Monday of each week, and the lines divide one
+        week from the next. Hover any day to see its date and who is on it. Click a strip
+        to open that house underneath.
+      </p>
+    </div>
     <div class="card">
       <div class="jv-pick">
         <label>Which job
@@ -2641,12 +2731,19 @@ create policy "app access" on critical_path
   async function cloudPushAll(){
     const ids = Object.keys(PARTNERS).concat([SETTINGS_ROW]);
     const rows = await Promise.all(ids.map(rowFor));
-    await cloudFetch(TABLE, {
+    // Ask for the stored rows back and keep THOSE timestamps. Keeping the ones generated
+    // here meant they never matched what the database wrote, so the very next poll saw
+    // every row as changed and replaced the lot — including whichever one was being typed
+    // into at the time.
+    const wrote = await cloudFetch(`${TABLE}?select=id,updated_at`, {
       method: 'POST',
-      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=representation' }),
       body: JSON.stringify(rows)
     });
-    rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+    let back = null;
+    try { back = await wrote.json(); } catch(_){ back = null; }
+    if(Array.isArray(back) && back.length) back.forEach(r => { if(r && r.id) remoteStamps[r.id] = r.updated_at; });
+    else rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
   }
 
   async function cloudLoadAll(){
@@ -2768,6 +2865,21 @@ create policy "app access" on critical_path
     }
   }
 
+  // The rows with a box open on them right now. These must not be replaced from the
+  // database however stale they look: every field on screen is wired to the objects
+  // that are in hand, and swapping one out leaves the person typing into a copy that
+  // nothing will ever write back. They come back into play the moment focus leaves.
+  function rowsBeingEdited(){
+    const out = [];
+    const el = document.activeElement;
+    if(!el || !el.closest || el === document.body) return out;
+    // a board cell, a column heading, or one of the contact boxes under it
+    if(el.closest('#mainPanel') && selectedId) out.push(selectedId);
+    // the Rough-In table and the Close Out notes both live in the settings row
+    if(el.closest('#paneRough') || el.closest('#paneClose')) out.push(SETTINGS_ROW);
+    return out;
+  }
+
   // Pull other people's changes. Only ids whose stamp moved are re-fetched.
   async function cloudPoll(){
     if(!CLOUD_ON || cryptoState === 'locked') return;
@@ -2791,7 +2903,8 @@ create policy "app access" on critical_path
     // Anything queued, in flight, or otherwise not yet committed is left as it is on
     // screen. The database's copy of those is older than what is in front of the person
     // typing, and applying it would take their work back off the board.
-    const skip = new Set([...pendingSaves, ...pendingDeletes, ...localDirty]);
+    const skip = new Set([...pendingSaves, ...pendingDeletes, ...localDirty,
+                          ...rowsBeingEdited()]);
     try {
       const res = await cloudFetch(`${TABLE}?select=id,updated_at`, { headers: cloudHeaders() });
       const rows = await res.json();
@@ -2807,8 +2920,15 @@ create policy "app access" on critical_path
         const list = changed.map(id => `"${id}"`).join(',');
         const r2 = await cloudFetch(`${TABLE}?select=id,data,updated_at&id=in.(${encodeURIComponent(list)})`,
                                      { headers: cloudHeaders() });
+        // Checked again HERE, not just before the fetch. Between working the list out
+        // and the answer coming back there is a round trip, and a cell clicked into
+        // during it would otherwise be replaced out from under the person typing.
+        const busy = new Set(rowsBeingEdited());
         for(const r of await r2.json()){
           if(r.id === CRYPTO_ROW){ remoteStamps[r.id] = r.updated_at; continue; }
+          // Left as it was, and its timestamp left alone too, so the next poll offers it
+          // again once the field is free rather than forgetting it ever changed.
+          if(busy.has(r.id)) continue;
           remoteStamps[r.id] = r.updated_at;
           const data = await readRowData(r.data);
           if(data == null) continue;          // encrypted with a key we don't hold
@@ -5652,12 +5772,19 @@ create policy "app access" on critical_path
         updated_at: stampNow()
       });
     }
-    await cloudFetch(TABLE, {
+    // Ask for the stored rows back and keep THOSE timestamps. Keeping the ones generated
+    // here meant they never matched what the database wrote, so the very next poll saw
+    // every row as changed and replaced the lot — including whichever one was being typed
+    // into at the time.
+    const wrote = await cloudFetch(`${TABLE}?select=id,updated_at`, {
       method: 'POST',
-      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      headers: cloudHeaders({ 'Prefer': 'resolution=merge-duplicates,return=representation' }),
       body: JSON.stringify(rows)
     });
-    rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+    let back = null;
+    try { back = await wrote.json(); } catch(_){ back = null; }
+    if(Array.isArray(back) && back.length) back.forEach(r => { if(r && r.id) remoteStamps[r.id] = r.updated_at; });
+    else rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
     setSync('synced');
   }
 
@@ -6541,13 +6668,27 @@ create policy "app access" on critical_path
   }
 
   // Earliest board date per trade for one linked lot, plus who has it that day.
+  // Does this board cell belong to that lot? The board files every cell under a lot base,
+  // so the comparison has to be base against base. Asking whether the name merely starts
+  // with the lot's name is what let "Brown" claim every "Brown Lake L" day: one name is
+  // the opening of the other, but they are two houses.
+  //
+  // The job list is passed in because this runs over every cell on every board, and
+  // rebuilding and re-sorting that list per cell is the difference between instant and
+  // noticeable.
+  function riSameLot(name, normBase, listed){
+    if(!normBase) return false;
+    const b = riBaseFrom(riNorm(name), listed || riListedBases());
+    return !!b && b === normBase;
+  }
+
   function riDatesFor(link, live){
     const res = {};
     const L = riNorm(link);
     if(!L) return res;
+    const listed = riListedBases();
     riBoardJobs(live).forEach(j => {
-      const n = riNorm(j.name);
-      if(n !== L && n.indexOf(L + ' ') !== 0) return;
+      if(!riSameLot(j.name, L, listed)) return;
       const cur = res[j.cat];
       if(!cur || j.date < cur.date) res[j.cat] = { date: j.date, partner: j.partner };
     });
@@ -7287,14 +7428,24 @@ create policy "app access" on critical_path
   // Redrawn a beat later, so a click on the padlock right next to the box still lands
   // on the padlock rather than on whatever replaces it.
   let riSoftTimer = null;
+  function riSoftApply(){
+    // Still somewhere in the table? Then the person has moved from one box to the next,
+    // and rebuilding now would throw away the one they have just clicked into. Look
+    // again shortly instead — the rows are only out of date to the eye, and everything
+    // typed is already recorded.
+    const el = document.activeElement;
+    if(el && el.closest && el.closest('#riBody')){
+      riSoftTimer = setTimeout(riSoftApply, 250);
+      return;
+    }
+    riRefreshConflicts();
+    riRenderTable();
+    riRenderStats(); riRenderPartners(); riRenderBars();
+    riRenderLockAsk();
+  }
   function riSoftRefresh(){
     clearTimeout(riSoftTimer);
-    riSoftTimer = setTimeout(() => {
-      riRefreshConflicts();
-      riRenderTable();
-      riRenderStats(); riRenderPartners(); riRenderBars();
-      riRenderLockAsk();
-    }, 0);
+    riSoftTimer = setTimeout(riSoftApply, 0);
   }
 
   document.getElementById('riBody').addEventListener('focusout', (e) => {
@@ -7507,6 +7658,210 @@ create policy "app access" on critical_path
     return best;
   }
 
+  // Every lot with work somewhere in the four weeks, with the days it is on and the
+  // idle stretches inside its own run. One pass over the boards rather than one pass per
+  // lot, so this stays cheap enough to redraw whenever anything changes.
+  function jvDashData(){
+    const timeline = jvTimeline();
+    const order = new Map();
+    timeline.forEach((t, i) => { if(t.iso) order.set(t.iso, i); });
+    const labels = jvLotLabels();
+    const dir = clDirectory();
+    const lots = new Map();
+
+    sortedPartnerIds().forEach(pid => {
+      const p = PARTNERS[pid];
+      if(!p) return;
+      (p.weeks || []).forEach(w => (w.days || []).forEach(d => {
+        if(!d.date) return;
+        const iso = String(d.date).slice(0, 10);
+        if(!order.has(iso)) return;
+        (d.jobs || []).forEach(j => {
+          if(!j || !j.trim()) return;
+          const base = riLotBases.baseOf(j);
+          if(!base) return;
+          let L = lots.get(base);
+          if(!L){
+            L = { base: base, label: labels.get(base) || riCleanLabel(j) || base,
+                  cl: '', busy: new Map(), first: '', last: '' };
+            lots.set(base, L);
+          }
+          if(!L.cl){
+            const tag = jobLeader(j);
+            if(tag){ const hit = dir.get(String(tag).toLowerCase()); L.cl = (hit && hit.name) || tag; }
+          }
+          // every trade on the day, in construction order — the first gives the letter,
+          // the rest are there for the tooltip
+          let slot = L.busy.get(iso);
+          if(!slot){ slot = { cats: [], names: [] }; L.busy.set(iso, slot); }
+          if(slot.cats.indexOf(p.category) === -1) slot.cats.push(p.category);
+          const nm = p.name || '(unnamed)';
+          if(slot.names.indexOf(nm) === -1) slot.names.push(nm);
+          if(!L.first || iso < L.first) L.first = iso;
+          if(!L.last || iso > L.last) L.last = iso;
+        });
+      }));
+    });
+
+    const out = [...lots.values()];
+    out.forEach(L => {
+      L.cells = timeline.map(t => {
+        const inRun = t.iso && t.iso >= L.first && t.iso <= L.last;
+        const slot = L.busy.get(t.iso);
+        return { iso: t.iso, day: t.day,
+                 cat: slot ? slot.cats[0] : '',
+                 who: slot ? slot.names.join(', ') : '',
+                 on: !!slot,
+                 idle: inRun && !slot };
+      });
+      // idle stretches, same reading the single-job view uses
+      L.gaps = [];
+      let run = 0;
+      L.cells.forEach(c => {
+        if(c.idle) run++;
+        else { if(run) L.gaps.push(run); run = 0; }
+      });
+      if(run) L.gaps.push(run);
+      L.idle = L.cells.filter(c => c.idle).length;
+      L.worst = L.gaps.length ? Math.max.apply(null, L.gaps) : 0;
+    });
+    // board order: the way the work runs, earliest start first
+    out.sort((a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : a.label.localeCompare(b.label)));
+    return { timeline: timeline, lots: out };
+  }
+
+  const JV_FOLD_KEY = 'brownhaven.criticalpath.jvdashfold';
+  const JV_GAP_KEY = 'brownhaven.criticalpath.jvgap';
+  function jvGapSize(){
+    let n = 3;
+    try { n = parseInt(window.localStorage.getItem(JV_GAP_KEY), 10) || 3; } catch(_){}
+    return Math.min(5, Math.max(2, n));
+  }
+
+  function jvDashRender(){
+    const grid = document.getElementById('jvDashGrid');
+    if(!grid) return;
+    const sel = document.getElementById('jvDashGap');
+    const need = jvGapSize();
+    if(sel && sel.value !== String(need)) sel.value = String(need);
+    const onlyEl = document.getElementById('jvDashOnly');
+    const only = !!(onlyEl && onlyEl.checked);
+
+    const data = jvDashData();
+    const flagged = data.lots.filter(L => L.worst >= need);
+    const show = only ? flagged : data.lots;
+    const picked = (document.getElementById('jvJob') || {}).value || '';
+
+    const sum = document.getElementById('jvDashSum');
+    if(sum){
+      sum.innerHTML = data.lots.length
+        ? `${data.lots.length} house${data.lots.length === 1 ? '' : 's'} on the board \u00b7 `
+          + (flagged.length ? `<b>${flagged.length}</b> with ${need} idle workdays or more`
+                            : 'none with a gap that size')
+        : '';
+    }
+
+    if(!show.length){
+      grid.innerHTML = `<p class="jv-dash-none">${data.lots.length
+        ? 'Nothing is sitting idle that long.'
+        : 'No houses on the board for these four weeks yet.'}</p>`;
+      return;
+    }
+
+    grid.innerHTML = show.map(L => {
+      const bad = L.worst >= need;
+      // mark the cells belonging to a run that reaches the flag length
+      const flags = new Array(L.cells.length).fill(false);
+      let start = -1;
+      L.cells.forEach((c, i) => {
+        if(c.idle){ if(start < 0) start = i; }
+        else { if(start >= 0 && i - start >= need){ for(let k = start; k < i; k++) flags[k] = true; } start = -1; }
+      });
+      if(start >= 0 && L.cells.length - start >= need){ for(let k = start; k < L.cells.length; k++) flags[k] = true; }
+
+      const strip = L.cells.map((c, i) => {
+        const cls = ['jv-c'];
+        if(i % 5 === 0 && i) cls.push('wk');
+        if(c.on) cls.push('on');
+        else if(flags[i]) cls.push('bad');
+        else if(c.idle) cls.push('idle');
+        // every day says what it is on hover — the exact date and who is on it
+        const what = c.on ? c.who : (c.idle ? 'nobody on it' : 'outside this job');
+        const tip = `${c.day} ${jvFmt(c.iso)} — ${what}`;
+        return `<i class="${cls.join(' ')}" title="${esc(tip)}"></i>`;
+      }).join('');
+
+      // Four marks rather than twenty: the Monday of each week, which is enough to know
+      // where in the month a block sits.
+      const scale = [0, 5, 10, 15].map(i =>
+        `<span>${esc(jvFmt((L.cells[i] || {}).iso))}</span>`).join('');
+
+      // The dates live in the tooltip. On screen a tile says its name, its shape, and —
+      // only when there is one — how big the hole is.
+      const when = `${jvFmt(L.first)} – ${jvFmt(L.last)}`;
+      return `<button type="button" class="jv-tile${bad ? ' flagged' : ''}${bad ? '' : ' clean'}${L.base === picked ? ' on' : ''}"
+          data-jvbase="${esc(L.base)}" title="${esc(L.label + ' · on the board ' + when
+            + (L.idle ? ' · ' + L.idle + ' idle workday' + (L.idle === 1 ? '' : 's') : ' · no idle days'))}">
+        <span class="jv-tile-head">
+          <span class="jv-tile-name">${esc(L.label)}</span>
+          <span class="jv-tile-cl">${esc(L.cl || '')}</span>
+        </span>
+        <span class="jv-strip">${strip}</span>
+        <span class="jv-scale">${scale}</span>
+        <span class="jv-tile-foot">
+          <span class="gap">${bad ? L.worst + ' days idle' : ''}</span>
+        </span>
+      </button>`;
+    }).join('');
+  }
+
+  // Redrawn a tick later so the pairs of calls dotted through the app that refresh this
+  // tab do not each rebuild the whole wall.
+  let jvDashTimer = null;
+  function jvDashRefresh(){
+    clearTimeout(jvDashTimer);
+    jvDashTimer = setTimeout(jvDashRender, 0);
+  }
+
+  (function wireJvDash(){
+    const grid = document.getElementById('jvDashGrid');
+    if(grid) grid.addEventListener('click', e => {
+      const tile = e.target.closest('[data-jvbase]');
+      if(!tile) return;
+      const sel = document.getElementById('jvJob');
+      if(!sel) return;
+      sel.value = tile.getAttribute('data-jvbase');
+      jvRender();
+      jvDashRender();
+      const head = document.getElementById('jvHead');
+      if(head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    // Same fold the contact cards use, remembered the same way.
+    const fold = document.getElementById('jvDashFold');
+    const card = fold && fold.closest('.fold-card');
+    const setFold = (on) => {
+      if(!card) return;
+      card.classList.toggle('folded', on);
+      fold.setAttribute('aria-expanded', on ? 'false' : 'true');
+    };
+    let folded = false;
+    try { folded = window.localStorage.getItem(JV_FOLD_KEY) === '1'; } catch(_){}
+    setFold(folded);
+    if(fold) fold.addEventListener('click', () => {
+      folded = !folded;
+      try { window.localStorage.setItem(JV_FOLD_KEY, folded ? '1' : '0'); } catch(_){}
+      setFold(folded);
+    });
+
+    const gap = document.getElementById('jvDashGap');
+    if(gap) gap.addEventListener('change', () => {
+      try { window.localStorage.setItem(JV_GAP_KEY, gap.value); } catch(_){}
+      jvDashRender();
+    });
+    const only = document.getElementById('jvDashOnly');
+    if(only) only.addEventListener('change', jvDashRender);
+  })();
+
   function jvFillPicker(){
     const sel = document.getElementById('jvJob');
     if(!sel) return;
@@ -7531,6 +7886,7 @@ create policy "app access" on critical_path
     if(keep && labels.has(keep)) sel.value = keep;
     const c = document.getElementById('jvCount');
     if(c) c.textContent = `${rows.length} job${rows.length === 1 ? '' : 's'} to choose from`;
+    jvDashRefresh();
   }
 
   // The 20 weekdays the board covers, taken from any calendar partner so the columns
@@ -7549,6 +7905,7 @@ create policy "app access" on critical_path
   function jvHits(base){
     const L = riNorm(base);
     if(!L) return [];
+    const listed = riListedBases();
     const out = [];
     sortedPartnerIds().forEach(pid => {
       const p = PARTNERS[pid];
@@ -7557,16 +7914,14 @@ create policy "app access" on critical_path
         if(!d.date) return;
         (d.jobs || []).forEach(j => {
           if(!j || !j.trim()) return;
-          const n = riNorm(j);
-          if(n !== L && n.indexOf(L + ' ') !== 0) return;
+          if(!riSameLot(j, L, listed)) return;
           out.push({ pid, partner: p.name || '(unnamed)', cat: p.category,
                      iso: String(d.date).slice(0, 10), day: d.day,
                      text: jobText(j), note: jobNote(j), raw: j.trim() });
         });
       }));
       (p.groups || []).forEach(g => (g.rows || []).forEach(r => {
-        const n = riNorm(r.job);
-        if(!r.job || (n !== L && n.indexOf(L + ' ') !== 0)) return;
+        if(!r.job || !riSameLot(r.job, L, listed)) return;
         out.push({ pid, partner: p.name || '(unnamed)', cat: p.category, iso: '',
                    day: '', text: jobText(r.job), note: g.title || '', raw: r.job });
       }));
@@ -8935,6 +9290,7 @@ create policy "app access" on critical_path
   function coBoardStart(base, pids){
     const L = riNorm(base);
     if(!L) return '';
+    const listed = riListedBases();
     let best = '';
     pids.forEach(pid => {
       const p = PARTNERS[pid];
@@ -8943,8 +9299,7 @@ create policy "app access" on critical_path
         if(!d.date) return;
         const iso = String(d.date).slice(0, 10);
         (d.jobs || []).forEach(j => {
-          const n = riNorm(j);
-          if(!n || (n !== L && n.indexOf(L + ' ') !== 0)) return;
+          if(!j || !riSameLot(j, L, listed)) return;
           if(!best || iso < best) best = iso;
         });
       }));
@@ -9559,9 +9914,12 @@ create policy "app access" on critical_path
     // two rows plus the padding, measured off what is actually drawn
     const row = el.querySelector('.jp-row');
     const h = row ? row.getBoundingClientRect().height : 32;
-    el.style.maxHeight = Math.round(h * JP_ROWS_SHOWN + 8) + 'px';
+    const hintEl = el.querySelector('.jp-hint');
+    const hint = hintEl ? hintEl.getBoundingClientRect().height : 0;
+    const want = h * JP_ROWS_SHOWN + hint + 8;
+    el.style.maxHeight = Math.round(want) + 'px';
     const below = window.innerHeight - r.bottom;
-    const need = Math.min(el.scrollHeight, h * JP_ROWS_SHOWN + 8);
+    const need = Math.min(el.scrollHeight, want);
     if(below < need + 10 && r.top > need + 10) el.style.top = (r.top - need - 4) + 'px';
     else el.style.top = (r.bottom + 4) + 'px';
   }
@@ -9587,7 +9945,8 @@ create policy "app access" on critical_path
     el.innerHTML = JP_ITEMS.map((j, i) => `
       <div class="jp-row${i === 0 ? ' on' : ''}" data-jp="${i}">
         <b>${jpMark(j.name, inp.value)}</b>${j.cl ? `<span class="jp-cl">${esc(j.cl)}</span>` : ''}
-      </div>`).join('');
+      </div>`).join('')
+      + `<div class="jp-hint">Enter takes the lit row · ↑↓ to change it · Esc keeps your own words</div>`;
     el.hidden = false;
     jpPlace(el, inp);
     el.scrollTop = 0;
@@ -9639,7 +9998,9 @@ create policy "app access" on critical_path
     if(!JP_ITEMS.length) return;
     if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
       e.preventDefault();
-      JP_AT = (JP_AT + (e.key === 'ArrowDown' ? 1 : -1) + JP_ITEMS.length) % JP_ITEMS.length;
+      // From nothing-picked, Down lands on the first and Up on the last.
+      if(JP_AT < 0) JP_AT = e.key === 'ArrowDown' ? 0 : JP_ITEMS.length - 1;
+      else JP_AT = (JP_AT + (e.key === 'ArrowDown' ? 1 : -1) + JP_ITEMS.length) % JP_ITEMS.length;
       jpHighlight();
     } else if(e.key === 'Enter'){
       if(JP_AT >= 0){ e.preventDefault(); jpChoose(JP_AT); }
