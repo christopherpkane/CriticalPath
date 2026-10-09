@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send Test</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --line:#d9dde3; --text:#1b1f24; --muted:#5b6471;
+    --accent:#1b5e9e; --good:#0c7a3d; --bad:#a32828; --warn:#8a5a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15181c; --surface:#1e2228; --line:#333a43; --text:#e8ebef; --muted:#9aa4b1;
+           --accent:#6fb3ee; --good:#4dc07d; --bad:#ef7f7f; --warn:#e0ab4a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 64px;background:var(--bg);color:var(--text);
+       font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+        padding:16px;margin:0 0 14px}
+  .flag{border-left:4px solid var(--warn)}
+  label{display:block;font-weight:600;margin:0 0 6px}
+  input[type=tel]{width:100%;max-width:280px;padding:10px 12px;font-size:17px;
+       border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+  .row{border-top:1px solid var(--line);padding:16px 0 12px}
+  .row:first-of-type{border-top:0}
+  .row h3{margin:0 0 3px;font-size:15px}
+  .row p{margin:0;color:var(--muted);font-size:13.5px}
+  .spec{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+  .spec b{color:var(--text);font-weight:600}
+  button.go{background:var(--accent);color:#fff;border:0;border-radius:8px;
+       padding:10px 16px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
+  button.go:disabled{opacity:.45;cursor:default}
+  .marks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .marks button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+       border-radius:999px;padding:5px 14px;font-size:13px;cursor:pointer}
+  .marks button[aria-pressed=true]{border-color:transparent;color:#fff}
+  .marks button[data-v=sent][aria-pressed=true]{background:var(--good)}
+  .marks button[data-v=failed][aria-pressed=true]{background:var(--bad)}
+  #out{width:100%;min-height:130px;font:12.5px/1.5 ui-monospace,Consolas,monospace;
+       padding:10px;border:1px solid var(--line);border-radius:8px;
+       background:var(--bg);color:var(--text)}
+  .note{font-size:13.5px;color:var(--muted)}
+  .done{color:var(--good);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Send Test</h1>
+<p class="sub">Your screenshot had no picture in it and still said "couldn't be sent," so
+it is the message. Two things about a message can stop a phone sending it: how long it is,
+and whether it contains characters outside the plain typewriter set. These five separate
+the two.</p>
+
+<div class="card flag">
+  <p style="margin:0"><b>These really send.</b> Use your own mobile. Open each one and
+  press Send without changing anything.</p>
+</div>
+
+<div class="card">
+  <label for="num">Your mobile number</label>
+  <input id="num" type="tel" placeholder="828 555 0123" autocomplete="off">
+</div>
+
+<div class="card" id="tests"></div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px;font-size:15px">When you're done</h3>
+  <p class="note" style="margin:0 0 10px">Press copy and paste it back to me.</p>
+  <textarea id="out" readonly></textarea>
+  <p style="margin:10px 0 0"><button class="go" id="copy">Copy the results</button>
+     <span id="copied" class="done" hidden>copied</span></p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  // The real thing, exactly as the tracker writes it today — en dash in the week range,
+  // middle dots between the contact details.
+  var FANCY = "THIS WEEK (10/12–10/16)\n"
+    + "  Mon 10/12  Kononoff (BN) - backfill/ Septic | Adams (SB) - final\n"
+    + "  Tue 10/13  Kononoff (BN) - backfill | Adams (SB) - final\n"
+    + "  Wed 10/14  Adams (SB) - final\n"
+    + "  Thu 10/15  Brown Lake L (SB) - septic\n"
+    + "  Fri 10/16  Brown Lake Lure Septic S\n\n"
+    + "YOUR BROWN HAVEN CONTACTS\n"
+    + "  Bo Nolan · (828) 755-5703 · bnolan@brownhavenhomes.com\n"
+    + "  Sam Buff · (828) 502-9965 · sbuff@brownhavenhomes.com";
+
+  // The same message with every character replaced by its typewriter equivalent.
+  var PLAIN = FANCY.replace(/–/g, '-').replace(/·/g, '-');
+
+  // The same again with the contact block taken off — shorter, nothing else changed.
+  var SHORT = PLAIN.split('\n\nYOUR BROWN HAVEN')[0];
+
+  var TESTS = [
+    { id:1, name:'Short, plain characters',
+      why:'The baseline. If this one fails, nothing else here matters.',
+      body:'Test 1. Holberts Grading, Mon 10/12 Kononoff backfill.' },
+
+    { id:2, name:'Short, with a dash and a dot',
+      why:'Same length as 1. The only difference is two characters that are not on a '
+        + 'typewriter. A phone has to switch to a wider alphabet for those, which more '
+        + 'than halves how much fits in one message.',
+      body:'Test 2. Holberts Grading · Mon 10/12–10/16 Kononoff backfill.' },
+
+    { id:3, name:'A full schedule, plain characters',
+      why:'Long, but every character is an ordinary one.',
+      body:PLAIN },
+
+    { id:4, name:'A full schedule, exactly as the tracker sends it',
+      why:'The message from your screenshot. Long AND with the dash and dots in it.',
+      body:FANCY },
+
+    { id:5, name:'A schedule with the contact block removed',
+      why:'Plain characters and about half the length. If 3 fails and this sends, the '
+        + 'message is simply too long.',
+      body:SHORT }
+  ];
+
+  var results = {};
+  var numEl = document.getElementById('num');
+  var outEl = document.getElementById('out');
+
+  function digits(){ return (numEl.value || '').replace(/\D/g, ''); }
+  function e164(){
+    var d = digits();
+    if(d.length === 10) return '+1' + d;
+    if(d.length === 11 && d.charAt(0) === '1') return '+' + d;
+    return d ? '+' + d : '';
+  }
+  function plainOnly(s){ return !/[^\x09\x0a\x20-\x7e]/.test(s); }
+
+  // In the tab we are already in — a new tab never reaches Windows.
+  function go(href){
+    var a = document.createElement('a');
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  var host = document.getElementById('tests');
+  TESTS.forEach(function(t){
+    var odd = t.body.split('').filter(function(ch){ return ch.charCodeAt(0) > 126; });
+    var row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = '<h3>' + t.id + '. ' + t.name + '</h3><p>' + t.why + '</p>'
+      + '<div class="spec"><span><b>' + t.body.length + '</b> characters</span>'
+      + '<span><b>' + (plainOnly(t.body) ? 'plain' : 'has ' + odd.length + ' special')
+      + '</b> characters</span>'
+      + '<span><b>' + (t.body.split('\n').length) + '</b> lines</span></div>';
+
+    var btn = document.createElement('button');
+    btn.className = 'go';
+    btn.textContent = 'Open ' + t.id + ' and press Send';
+    btn.disabled = true;
+    btn.addEventListener('click', function(){
+      go('sms:' + e164() + '?body=' + encodeURIComponent(t.body));
+    });
+    row.appendChild(btn);
+
+    var marks = document.createElement('div');
+    marks.className = 'marks';
+    [{v:'sent',label:'Sent'},{v:'failed',label:"Couldn't be sent"}].forEach(function(m){
+      var mb = document.createElement('button');
+      mb.textContent = m.label;
+      mb.setAttribute('data-v', m.v);
+      mb.setAttribute('aria-pressed', 'false');
+      mb.addEventListener('click', function(){
+        results[t.id] = m.v;
+        [].forEach.call(marks.children, function(x){
+          x.setAttribute('aria-pressed', x === mb ? 'true' : 'false');
+        });
+        render();
+      });
+      marks.appendChild(mb);
+    });
+    row.appendChild(marks);
+    host.appendChild(row);
+    t._btn = btn;
+  });
+
+  function render(){
+    var lines = ['Send test — ' + new Date().toLocaleString()];
+    TESTS.forEach(function(t){
+      var r = results[t.id];
+      lines.push(t.id + '. ' + t.name
+        + ' (' + t.body.length + ' chars, ' + (plainOnly(t.body) ? 'plain' : 'special') + ')'
+        + ' — ' + (r === 'sent' ? 'SENT' : r === 'failed' ? "couldn't be sent" : 'not tried'));
+    });
+    outEl.value = lines.join('\n');
+  }
+
+  numEl.addEventListener('input', function(){
+    var on = digits().length >= 10;
+    TESTS.forEach(function(t){ t._btn.disabled = !on; });
+  });
+  render();
+
+  document.getElementById('copy').addEventListener('click', function(){
+    outEl.select();
+    var done = document.getElementById('copied');
+    try { navigator.clipboard.writeText(outEl.value); } catch(e){ try { document.execCommand('copy'); } catch(_){} }
+    done.hidden = false;
+    setTimeout(function(){ done.hidden = true; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>

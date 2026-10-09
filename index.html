@@ -1787,6 +1787,7 @@
         <button class="primary" id="jvEmailBtn">✉ Email it</button>
         <button id="jvTextBtn">💬 Text it</button>
         <button id="jvCopyBtn">Copy the picture</button>
+        <button id="jvWordsBtn">Copy the words</button>
         <button id="jvDownBtn">⤓ Download</button>
       </div>
       <label class="dur-optin" style="margin:11px 0 0 2px" title="Off by default — the calendar says it all">
@@ -1886,6 +1887,9 @@
         </button>
         <button class="send-big" id="copyImageBtn">
           <span class="send-ico">📋</span><span><b>Copy the Picture</b><small>paste into anything</small></span>
+        </button>
+        <button class="send-big" id="copyTextBtn">
+          <span class="send-ico">📝</span><span><b>Copy the Words</b><small>start the text yourself and paste</small></span>
         </button>
       </div>
       <label class="txt-weeks" id="txtWeeksRow">
@@ -5351,6 +5355,31 @@ create policy "app access" on critical_path
     return file;
   }
 
+  // The written schedule on the clipboard, as text. Pasting it into a message is the
+  // same thing as typing it, which is the only way to a text that has never failed here.
+  // execCommand is the fallback for a browser that will not give the clipboard to script.
+  async function copyWords(text, done){
+    try {
+      await navigator.clipboard.writeText(text);
+      setSendStatus(done, 'ok', true);
+      return true;
+    } catch(_){ /* fall through */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if(ok){ setSendStatus(done, 'ok', true); return true; }
+    } catch(_){ /* fall through */ }
+    setSendStatus('This browser would not let the page reach the clipboard.', 'bad', true);
+    return false;
+  }
+
   function downloadFile(file){
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
@@ -5690,6 +5719,13 @@ create policy "app access" on critical_path
           + `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
       opened: `Opening an email to ${who} with all four weeks written out.`
     });
+  });
+
+  document.getElementById('copyTextBtn').addEventListener('click', () => {
+    const p = PARTNERS[document.getElementById('exportPartnerSelect').value];
+    if(!p) return;
+    copyWords(buildScheduleText(p, 1),
+      'This week is copied. Open Phone Link, start the message yourself, and press Ctrl+V.');
   });
 
   document.getElementById('copyImageBtn').addEventListener('click', async () => {
@@ -8484,6 +8520,15 @@ create policy "app access" on critical_path
         downloadFile(file);
         setSendStatus(`Copying was blocked, so it downloaded as ${file.name}.`, 'bad', true);
       }
+    });
+    // The schedule as text, for starting the message yourself. No link to Windows is
+    // involved, so there is nothing in the way.
+    document.getElementById('jvWordsBtn').addEventListener('click', () => {
+      focusHere();
+      if(!JV_PK) return;
+      copyWords(jvMessage(JV_PK),
+        'The schedule is copied. Open Phone Link, start the message to '
+        + `${JV_PK.cl.name || 'the leader'} yourself, and press Ctrl+V.`);
     });
     document.getElementById('jvDownBtn').addEventListener('click', async () => {
       focusHere();
