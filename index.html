@@ -5015,7 +5015,15 @@ create policy "app access" on critical_path
   });
 
   // ---------- sending ----------
-  function telDigits(phone){ return String(phone || '').replace(/[^\d+]/g, ''); }
+  // Microsoft's own sms: example is +14255550101, and that is the form that came back
+  // working from the test. A plain ten-digit number in the contacts here is a US one,
+  // so it gets its +1.
+  function telDigits(phone){
+    const d = String(phone || '').replace(/[^\d+]/g, '');
+    if(/^\d{10}$/.test(d)) return '+1' + d;
+    if(/^1\d{10}$/.test(d)) return '+' + d;
+    return d;
+  }
 
   // Whoever is running the houses on THIS trade partner's board — taken from the (CK)
   // tags on their own cells and from the job list, so a crew is given the one or two
@@ -5586,11 +5594,16 @@ create policy "app access" on critical_path
   // Hand the sms:/mailto: link to the OS via a click rather than assigning
   // location.href — that way the tracker itself can never navigate away and lose
   // anything if the computer has no app registered for that link.
+  //
+  // In the tab we are already in, and NOT a new one. Chrome will not open a fresh tab
+  // and then send that tab to an outside app: asked to do both at once it does neither,
+  // silently, which is why Text it looked like it did nothing for weeks. Clicking the
+  // link in place is what Windows actually acts on. Nothing is lost by it — a browser
+  // handed sms: or mailto: passes it to Windows and stays exactly where it was, and if
+  // no app is registered for that link it simply does nothing.
   function openExternal(href){
     const a = document.createElement('a');
     a.href = href;
-    a.target = '_blank';
-    a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -5624,7 +5637,8 @@ create policy "app access" on critical_path
       title: `${p.name} schedule`,
       text: body,
       link: `sms:${telDigits(c.phone)}?body=${encodeURIComponent(body)}`,
-      opened: `Opening a text to ${c.name || c.phone} (${c.phone}) — this week’s schedule is written in it.`
+      opened: `Phone Link asked to open a text to ${c.name || c.phone} (${c.phone}) — this week’s `
+        + `schedule is written in it.`
     });
   }
 
@@ -8428,10 +8442,13 @@ create policy "app access" on critical_path
                link: `mailto:${encodeURIComponent(to.trim())}?subject=${encodeURIComponent(subject)}`
                      + `&body=${encodeURIComponent(lead)}` };
     }
-    const phone = String(pk.cl.phone || '').replace(/[^\d+]/g, '');
+    const phone = telDigits(pk.cl.phone);
     return { p: pk, variant: 'full', kind: 'text', to: phone, subject: subject,
              title: subject, text: text, appName: 'Messages',
-             opened: phone ? 'Your text opened, written out.' : 'Your messaging app opened — pick who it goes to.',
+             // Once the link leaves the page, nothing comes back to say what Windows
+             // did with it. So this says what was asked for, not what happened.
+             opened: phone ? `Phone Link asked to open a text to ${phone}, written out.`
+                           : 'Your messaging app was asked to open — pick who it goes to.',
              link: (phone ? `sms:${phone}` : 'sms:') + `?body=${encodeURIComponent(text)}` };
   }
 

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text Link Test</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --line:#d9dde3; --text:#1b1f24; --muted:#5b6471;
+    --accent:#1b5e9e; --good:#0c7a3d; --bad:#a32828; --warn:#8a5a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15181c; --surface:#1e2228; --line:#333a43; --text:#e8ebef; --muted:#9aa4b1;
+           --accent:#6fb3ee; --good:#4dc07d; --bad:#ef7f7f; --warn:#e0ab4a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 64px;background:var(--bg);color:var(--text);
+       font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 22px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+        padding:16px;margin:0 0 14px}
+  label{display:block;font-weight:600;margin:0 0 6px}
+  input[type=tel]{width:100%;max-width:280px;padding:10px 12px;font-size:17px;
+       border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+  .row{border-top:1px solid var(--line);padding:14px 0 12px}
+  .row:first-of-type{border-top:0}
+  .row h3{margin:0 0 2px;font-size:15px}
+  .row p{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+  code{background:var(--bg);border:1px solid var(--line);border-radius:5px;
+       padding:1px 5px;font-size:12.5px;word-break:break-all}
+  button.go{background:var(--accent);color:#fff;border:0;border-radius:8px;
+       padding:10px 16px;font-size:15px;font-weight:600;cursor:pointer}
+  button.go:disabled{opacity:.45;cursor:default}
+  .marks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .marks button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+       border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+  .marks button[aria-pressed=true]{border-color:transparent;color:#fff}
+  .marks button[data-v=full][aria-pressed=true]{background:var(--good)}
+  .marks button[data-v=empty][aria-pressed=true]{background:var(--warn)}
+  .marks button[data-v=none][aria-pressed=true]{background:var(--bad)}
+  .marks button[data-v=error][aria-pressed=true]{background:var(--bad)}
+  #out{width:100%;min-height:150px;font:12.5px/1.5 ui-monospace,Consolas,monospace;
+       padding:10px;border:1px solid var(--line);border-radius:8px;
+       background:var(--bg);color:var(--text)}
+  .note{font-size:13.5px;color:var(--muted)}
+  .done{color:var(--good);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Text Link Test</h1>
+<p class="sub">Eight ways of handing a text to Windows. One of them is what the tracker
+uses. Press them in order and mark what happened — that tells me which part Phone Link
+will not take.</p>
+
+<div class="card">
+  <label for="num">Send the tests to this number</label>
+  <input id="num" type="tel" placeholder="828 555 0123" autocomplete="off">
+  <p class="note" style="margin:8px 0 0">Use your own mobile, or anyone's you don't mind
+  a few test messages reaching. Nothing sends by itself — Phone Link opens with the
+  message ready and you close it without pressing send.</p>
+</div>
+
+<div class="card" id="tests"></div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px;font-size:15px">When you're done</h3>
+  <p class="note" style="margin:0 0 10px">Press copy and paste it back to me.</p>
+  <textarea id="out" readonly></textarea>
+  <p style="margin:10px 0 0"><button class="go" id="copy">Copy the results</button>
+     <span id="copied" class="done" hidden>copied</span></p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var LONG = "Adams - four-week schedule\nWeek of Aug 24, 2026\n\n"
+    + "Mon 8/31   Santos Framing - Adams (SB)\nTue 9/1   Ramero Martinez - Adams (SB)\n"
+    + "Wed 9/2   Nolasco - Adams (SB)\nThu 9/3   NCPD - Adams (SB)\n\n"
+    + "- Brown Haven Homes, Asheville Critical Path";
+  var FANCY = "Adams — four-week schedule\nWeek of Aug 24, 2026\n\n"
+    + "Mon 8/31   Santos Framing — Adams (SB)\n\nNobody on the house:\n"
+    + "  3 workdays, Fri 9/4 → Tue 9/8";
+
+  // Each test changes exactly one thing from the one above it.
+  var TESTS = [
+    { id:1, name:'Just the number',
+      why:'Does Windows hand anything at all to Phone Link?',
+      link:function(e164, raw){ return 'sms:' + e164; } },
+    { id:2, name:'The number without +1',
+      why:'The form the tracker used before today.',
+      link:function(e164, raw){ return 'sms:' + raw; } },
+    { id:3, name:'A short message, question mark',
+      why:'The standard form: sms:number?body=text',
+      link:function(e164){ return 'sms:' + e164 + '?body=' + encodeURIComponent('Test 3 from the tracker'); } },
+    { id:4, name:'A short message, ampersand',
+      why:'Some versions of Phone Link want &body instead of ?body.',
+      link:function(e164){ return 'sms:' + e164 + '&body=' + encodeURIComponent('Test 4 from the tracker'); } },
+    { id:5, name:'Two lines',
+      why:'Adds a line break. Line breaks are where a lot of these fall over.',
+      link:function(e164){ return 'sms:' + e164 + '?body=' + encodeURIComponent('Test 5 line one\nline two'); } },
+    { id:6, name:'A whole schedule, plain text',
+      why:'Exactly what the tracker sends now — nine lines, about 370 characters.',
+      link:function(e164){ return 'sms:' + e164 + '?body=' + encodeURIComponent(LONG); } },
+    { id:7, name:'A schedule with dashes and arrows',
+      why:'What the tracker sent before today. If 6 works and 7 does not, that was it.',
+      link:function(e164){ return 'sms:' + e164 + '?body=' + encodeURIComponent(FANCY); } },
+    { id:8, name:'A phone call instead',
+      why:'Not a text at all. If this opens and none of the others do, the sms: handler '
+         + 'itself is not registered to Phone Link.',
+      link:function(e164){ return 'tel:' + e164; } }
+  ];
+
+  var MARKS = [
+    { v:'full',  label:'Opened, message was there' },
+    { v:'empty', label:'Opened, but empty' },
+    { v:'none',  label:'Nothing happened' },
+    { v:'error', label:'An error came up' }
+  ];
+
+  var results = {};
+  var numEl = document.getElementById('num');
+  var outEl = document.getElementById('out');
+
+  function digits(){ return (numEl.value || '').replace(/\D/g, ''); }
+  function e164(){
+    var d = digits();
+    if(d.length === 10) return '+1' + d;
+    if(d.length === 11 && d.charAt(0) === '1') return '+' + d;
+    return d ? '+' + d : '';
+  }
+  function ready(){ return digits().length >= 10; }
+
+  // A link, opened by a real click on a real anchor, in this tab. If Windows has nothing
+  // registered for sms: the page simply stays put.
+  function open(href){
+    var a = document.createElement('a');
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  var host = document.getElementById('tests');
+  TESTS.forEach(function(t){
+    var row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = '<h3>' + t.id + '. ' + t.name + '</h3><p>' + t.why + '</p>';
+
+    var btn = document.createElement('button');
+    btn.className = 'go';
+    btn.textContent = 'Try ' + t.id;
+    btn.disabled = true;
+    btn.addEventListener('click', function(){
+      var href = t.link(e164(), digits());
+      results[t.id] = results[t.id] || {};
+      results[t.id].link = href;
+      show(row, href);
+      open(href);
+      render();
+    });
+    row.appendChild(btn);
+
+    var marks = document.createElement('div');
+    marks.className = 'marks';
+    MARKS.forEach(function(m){
+      var mb = document.createElement('button');
+      mb.textContent = m.label;
+      mb.setAttribute('data-v', m.v);
+      mb.setAttribute('aria-pressed', 'false');
+      mb.addEventListener('click', function(){
+        results[t.id] = results[t.id] || { link: t.link(e164(), digits()) };
+        results[t.id].saw = m.v;
+        [].forEach.call(marks.children, function(x){
+          x.setAttribute('aria-pressed', x === mb ? 'true' : 'false');
+        });
+        render();
+      });
+      marks.appendChild(mb);
+    });
+    row.appendChild(marks);
+    host.appendChild(row);
+    t._btn = btn;
+  });
+
+  function show(row, href){
+    var c = row.querySelector('code');
+    if(!c){ c = document.createElement('div'); c.style.marginTop = '8px';
+            c.innerHTML = '<code></code>'; row.insertBefore(c, row.querySelector('.marks'));
+            c = c.querySelector('code'); }
+    c.textContent = href.length > 160 ? href.slice(0, 160) + '… (' + href.length + ' characters)' : href;
+  }
+
+  function render(){
+    var lines = ['Text link test — ' + new Date().toLocaleString()];
+    TESTS.forEach(function(t){
+      var r = results[t.id];
+      var saw = r && r.saw;
+      var word = saw === 'full' ? 'opened with the message'
+               : saw === 'empty' ? 'opened but empty'
+               : saw === 'none' ? 'nothing happened'
+               : saw === 'error' ? 'an error came up'
+               : 'not tried';
+      lines.push(t.id + '. ' + t.name + ' — ' + word);
+    });
+    outEl.value = lines.join('\n');
+  }
+
+  function refresh(){
+    var on = ready();
+    TESTS.forEach(function(t){ t._btn.disabled = !on; });
+  }
+  numEl.addEventListener('input', refresh);
+  refresh();
+  render();
+
+  document.getElementById('copy').addEventListener('click', function(){
+    outEl.select();
+    var done = document.getElementById('copied');
+    try { navigator.clipboard.writeText(outEl.value); } catch(e){ try { document.execCommand('copy'); } catch(_){} }
+    done.hidden = false;
+    setTimeout(function(){ done.hidden = true; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>
