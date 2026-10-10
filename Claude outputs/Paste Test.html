@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paste Test</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --line:#d9dde3; --text:#1b1f24; --muted:#5b6471;
+    --accent:#1b5e9e; --good:#0c7a3d; --bad:#a32828; --warn:#8a5a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15181c; --surface:#1e2228; --line:#333a43; --text:#e8ebef; --muted:#9aa4b1;
+           --accent:#6fb3ee; --good:#4dc07d; --bad:#ef7f7f; --warn:#e0ab4a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 64px;background:var(--bg);color:var(--text);
+       font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:700px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+        padding:16px;margin:0 0 14px}
+  .flag{border-left:4px solid var(--warn)}
+  ol.how{margin:8px 0 0;padding-left:20px}
+  ol.how li{margin:3px 0}
+  .row{border-top:1px solid var(--line);padding:18px 0 12px}
+  .row:first-of-type{border-top:0}
+  .row h3{margin:0 0 3px;font-size:15px}
+  .row p{margin:0;color:var(--muted);font-size:13.5px}
+  .spec{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+  .spec b{color:var(--text);font-weight:600}
+  pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;margin:8px 0 0;
+      padding:8px 10px;font:12.5px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;
+      max-height:120px;overflow:auto}
+  .thumb{margin-top:8px;border:1px solid var(--line);border-radius:6px;max-width:100%;display:block}
+  button.go{background:var(--accent);color:#fff;border:0;border-radius:8px;
+       padding:9px 16px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
+  .marks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .marks button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+       border-radius:999px;padding:5px 14px;font-size:13px;cursor:pointer}
+  .marks button[aria-pressed=true]{border-color:transparent;color:#fff}
+  .marks button[data-v=sent][aria-pressed=true]{background:var(--good)}
+  .marks button[data-v=failed][aria-pressed=true]{background:var(--bad)}
+  #out{width:100%;min-height:110px;font:12.5px/1.5 ui-monospace,Consolas,monospace;
+       padding:10px;border:1px solid var(--line);border-radius:8px;
+       background:var(--bg);color:var(--text)}
+  .note{font-size:13.5px;color:var(--muted)}
+  .done{color:var(--good);font-weight:600;margin-left:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Paste Test</h1>
+<p class="sub">Nothing opens by itself here and no link goes to Windows. Each button puts
+one thing on your clipboard. You paste it into a message you started yourself, the way the
+ones that work are sent, and press Send.</p>
+
+<div class="card flag">
+  <p style="margin:0"><b>For each one:</b></p>
+  <ol class="how">
+    <li>Press <b>Copy</b> here.</li>
+    <li>In Phone Link, open a conversation with your own number.</li>
+    <li>Click in the message box, press <b>Ctrl+V</b>, press <b>Send</b>.</li>
+    <li>Come back and mark what happened.</li>
+  </ol>
+</div>
+
+<div class="card" id="tests"></div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px;font-size:15px">When you're done</h3>
+  <textarea id="out" readonly></textarea>
+  <p style="margin:10px 0 0"><button class="go" id="copyres" style="margin:0">Copy the results</button>
+     <span id="copied" class="done" hidden>copied</span></p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var SCHEDULE = "Adams — four-week schedule\nWeek of Aug 24, 2026\n\n"
+    + "Mon 8/31   Santos Framing — Adams (SB)\nTue 9/1   Ramero Martinez — Adams (SB)\n"
+    + "Wed 9/2   Nolasco — Adams (SB)\nThu 9/3   NCPD — Adams (SB)\n\n"
+    + "— Brown Haven Homes, Asheville Critical Path";
+
+  // A stand-in for the tracker's calendar picture, drawn at whatever size is asked for.
+  // Same shape, same amount of ink — what is being tested is the size, not the artwork.
+  function drawCalendar(w, h){
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    var s = w / 1040;                      // 1040 is the drawing's natural width
+    var g = cv.getContext('2d', { alpha: false });
+    g.scale(s, s);
+    var W = 1040, H = h / s;
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#23405e'; g.fillRect(0, 0, W, 72);
+    g.fillStyle = '#ffffff';
+    g.font = '700 24px Segoe UI, sans-serif';
+    g.fillText('Adams', 26, 44);
+    g.font = '13px Segoe UI, sans-serif';
+    g.textAlign = 'right';
+    g.fillText('Week of Aug 24, 2026', W - 26, 44);
+    g.textAlign = 'left';
+    var rows = ['Santos Framing', 'Ramero Martinez', 'Nolasco', 'NCPD'];
+    var cols = 20, nameW = 196, gridX = 26, gridY = 96;
+    var colW = (W - 52 - nameW) / cols;
+    rows.forEach(function(name, r){
+      var y = gridY + r * 30;
+      g.fillStyle = r % 2 ? '#f4f5f7' : '#ffffff';
+      g.fillRect(gridX, y, W - 52, 28);
+      g.fillStyle = '#1b1f24';
+      g.font = '13px Segoe UI, sans-serif';
+      g.fillText(name, gridX + 6, y + 19);
+      for(var c = 0; c < cols; c++){
+        var on = (c + r) % 5 < 2;
+        g.fillStyle = on ? '#0c7a3d' : '#e6e8ec';
+        g.fillRect(gridX + nameW + c * colW + 1, y + 5, colW - 3, 18);
+      }
+    });
+    g.fillStyle = '#5b6471';
+    g.font = '12px Segoe UI, sans-serif';
+    g.fillText('Brown Haven Homes — Asheville Critical Path', 26, gridY + rows.length * 30 + 26);
+    return cv;
+  }
+
+  function copyPlain(text, btn){
+    var ok = function(){ flash(btn); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok, function(){ legacy(text, ok, btn); });
+    } else legacy(text, ok, btn);
+  }
+  function legacy(text, ok, btn){
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      ok();
+    } catch(e){ btn.textContent = 'Clipboard blocked'; }
+  }
+  function copyPicture(cv, btn){
+    cv.toBlob(function(blob){
+      if(!blob){ btn.textContent = 'Could not build it'; return; }
+      try {
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          .then(function(){ flash(btn); }, function(){ btn.textContent = 'Clipboard blocked'; });
+      } catch(e){ btn.textContent = 'Clipboard blocked'; }
+    }, 'image/png');
+  }
+  function flash(btn){
+    var was = btn.getAttribute('data-label');
+    btn.textContent = 'Copied ✓';
+    setTimeout(function(){ btn.textContent = was; }, 1600);
+  }
+
+  var TESTS = [
+    { id:1, kind:'text', name:'The schedule as words',
+      why:'What Copy the words puts on your clipboard. Plain text, nothing else.',
+      body:SCHEDULE },
+
+    { id:2, kind:'pic', name:'A picture the size the tracker sends now',
+      why:'3120 × 1050. This is what Copy the picture and Text it put on your clipboard '
+        + 'today. If this is the one that says the file is too large, we have it.',
+      w:3120, h:1050 },
+
+    { id:3, kind:'pic', name:'A phone-sized picture',
+      why:'1040 × 350. The same calendar, a third of the size each way — one ninth of the '
+        + 'weight. If 2 fails and this sends, I shrink the picture and we are done.',
+      w:1040, h:350 }
+  ];
+
+  var results = {};
+  var outEl = document.getElementById('out');
+  var host = document.getElementById('tests');
+
+  TESTS.forEach(function(t){
+    var row = document.createElement('div');
+    row.className = 'row';
+    var spec;
+    if(t.kind === 'text'){
+      spec = '<span><b>' + t.body.length + '</b> characters</span>'
+           + '<span><b>' + t.body.split('\n').length + '</b> lines</span>'
+           + '<span><b>text</b>, not a picture</span>';
+    } else {
+      spec = '<span><b>' + t.w + ' × ' + t.h + '</b> pixels</span>'
+           + '<span><b>' + (Math.round(t.w * t.h * 4 / 1048576 * 10) / 10)
+           + ' MB</b> once pasted</span>';
+    }
+    row.innerHTML = '<h3>' + t.id + '. ' + t.name + '</h3><p>' + t.why + '</p>'
+      + '<div class="spec">' + spec + '</div>';
+
+    if(t.kind === 'text'){
+      var pre = document.createElement('pre');
+      pre.textContent = t.body;
+      row.appendChild(pre);
+    } else {
+      var cv = drawCalendar(t.w, t.h);
+      t._cv = cv;
+      var im = document.createElement('img');
+      im.className = 'thumb';
+      im.alt = 'what gets copied';
+      im.src = drawCalendar(520, Math.round(520 * t.h / t.w)).toDataURL('image/png');
+      row.appendChild(im);
+    }
+
+    var btn = document.createElement('button');
+    btn.className = 'go';
+    btn.textContent = 'Copy';
+    btn.setAttribute('data-label', 'Copy');
+    btn.addEventListener('click', function(){
+      if(t.kind === 'text') copyPlain(t.body, btn); else copyPicture(t._cv, btn);
+    });
+    row.appendChild(btn);
+
+    var marks = document.createElement('div');
+    marks.className = 'marks';
+    [{v:'sent',label:'Sent'},{v:'failed',label:"Couldn't be sent"}].forEach(function(m){
+      var mb = document.createElement('button');
+      mb.textContent = m.label;
+      mb.setAttribute('data-v', m.v);
+      mb.setAttribute('aria-pressed', 'false');
+      mb.addEventListener('click', function(){
+        results[t.id] = m.v;
+        [].forEach.call(marks.children, function(x){
+          x.setAttribute('aria-pressed', x === mb ? 'true' : 'false');
+        });
+        render();
+      });
+      marks.appendChild(mb);
+    });
+    row.appendChild(marks);
+    host.appendChild(row);
+  });
+
+  function render(){
+    var lines = ['Paste test — ' + new Date().toLocaleString()];
+    TESTS.forEach(function(t){
+      var r = results[t.id];
+      var what = t.kind === 'text' ? t.body.length + ' chars of text'
+                                   : 'picture ' + t.w + 'x' + t.h;
+      lines.push(t.id + '. ' + t.name + ' (' + what + ') — '
+        + (r === 'sent' ? 'SENT' : r === 'failed' ? "couldn't be sent" : 'not tried'));
+    });
+    outEl.value = lines.join('\n');
+  }
+  render();
+
+  document.getElementById('copyres').addEventListener('click', function(){
+    outEl.select();
+    var done = document.getElementById('copied');
+    try { navigator.clipboard.writeText(outEl.value); } catch(e){ try { document.execCommand('copy'); } catch(_){} }
+    done.hidden = false;
+    setTimeout(function(){ done.hidden = true; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1787,8 +1787,16 @@
         <button class="primary" id="jvEmailBtn">✉ Email it</button>
         <button id="jvTextBtn">💬 Text it</button>
         <button id="jvCopyBtn">Copy the picture</button>
-        <button id="jvWordsBtn">Copy the words</button>
         <button id="jvDownBtn">⤓ Download</button>
+      </div>
+      <div class="txt-weeks" id="jvTextAppRow" style="margin:11px 0 2px 0">
+        <span><b>Text it</b> goes to</span>
+        <select id="jvTextAppSel" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+          <option value="phone">Phone Link</option>
+          <option value="google" selected="">Google Messages</option>
+        </select>
+        <button type="button" id="jvTextAppOpen">Open Google Messages</button>
+        <small id="jvTextAppNote"></small>
       </div>
       <label class="dur-optin" style="margin:11px 0 0 2px" title="Off by default — the calendar says it all">
         <input type="checkbox" id="jvListChk">
@@ -1888,9 +1896,6 @@
         <button class="send-big" id="copyImageBtn">
           <span class="send-ico">📋</span><span><b>Copy the Picture</b><small>paste into anything</small></span>
         </button>
-        <button class="send-big" id="copyTextBtn">
-          <span class="send-ico">📝</span><span><b>Copy the Words</b><small>start the text yourself and paste</small></span>
-        </button>
       </div>
       <label class="txt-weeks" id="txtWeeksRow">
         <span>Picture in a text shows</span>
@@ -1907,6 +1912,15 @@
         </select>
         <small id="txtWeeksNote">All four weeks. Length costs nothing in sharpness — just scrolling. Standard stays under the size a phone carrier will shrink again.</small>
       </label>
+      <div class="txt-weeks" id="textAppRow">
+        <span><b>Text It</b> goes to</span>
+        <select id="textAppSel" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1">
+          <option value="phone">Phone Link</option>
+          <option value="google" selected="">Google Messages</option>
+        </select>
+        <button type="button" id="textAppOpen">Open Google Messages</button>
+        <small id="textAppNote"></small>
+      </div>
       <label class="attach-choice" id="attachChoice">
         <input type="checkbox" id="attachDraftChk">
         <span>Attach the picture for me instead of pasting it
@@ -5380,6 +5394,58 @@ create policy "app access" on critical_path
     return false;
   }
 
+  // Which computer this is, not which team. Remembered here rather than written into
+  // the page, because Google Messages is signed in on one machine.
+  const GMSG_KEY = 'brownhaven.criticalpath.gmsg';
+  const GMSG_URL = 'https://messages.google.com/web';
+
+  function gmsgOn(){
+    try {
+      const v = window.localStorage.getItem(GMSG_KEY);
+      return v === null ? true : v === '1';     // on unless this computer says otherwise
+    } catch(_){ return true; }
+  }
+
+  // Text It copies the schedule and opens nothing.
+  //
+  // It used to open Google Messages and try to reuse that window. A browser will honour
+  // that — until the site is installed as an app, and then Chrome hands the address to
+  // the app instead of the window that was asked for, returns nothing to hold on to, and
+  // the next press opens another one. Tabs stacked up. A web page has no say in that.
+  //
+  // So the schedule goes on the clipboard and the message says what to do. Google
+  // Messages is open in its own window all day; switching to it is one keystroke. The
+  // button beside the chooser opens it for the once a morning it is not.
+  // The whole schedule as one picture, on the clipboard. Nothing else to paste, nothing
+  // handed to Windows. If the browser will not give up the clipboard the picture is saved
+  // instead, which can still be dragged onto a message.
+  async function sendPictureToGoogle(packet, variant, who){
+    if(!packet) return;
+    setSendStatus('Getting the picture ready\u2026');
+    const file = await pngFileEventually(packet, variant);
+    if(!file){ setSendStatus('Could not build the picture.', 'bad', true); return; }
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': file })]);
+      setSendStatus(`Schedule picture copied. In Google Messages pick ${who} and press Ctrl+V \u2014 `
+        + `the dates are written into the picture, so there is nothing else to paste.`, 'ok', true);
+    } catch(_){
+      downloadFile(file);
+      setSendStatus(`Copying was blocked, so it saved as ${file.name} \u2014 drag that onto the `
+        + `message instead.`, 'bad', true);
+    }
+  }
+
+  // Only when you ask for it, so it can never surprise you with a tab.
+  function openGoogleMessages(){
+    try {
+      window.open(GMSG_URL, 'bhGoogleMessages');
+      setSendStatus('Google Messages opened. Leave it open \u2014 Text It will copy each schedule '
+        + 'straight to it.', 'ok', true);
+    } catch(_){
+      setSendStatus('Could not open Google Messages from here.', 'bad', true);
+    }
+  }
+
   function downloadFile(file){
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
@@ -5683,6 +5749,16 @@ create policy "app access" on critical_path
     // one week only — a full month does not fit in a text message
     const body = buildScheduleText(p, 1);
 
+    // On a computer, straight to Google Messages with the week on the clipboard. No
+    // queue: Google Messages is one window and you pick the people in it yourself.
+    if(gmsgOn() && !isHandheld()){
+      TEXT_QUEUE = null; showTextQueue();
+      // The narrow picture, which was drawn for a phone and has the week written in it.
+      sendPictureToGoogle(p, 'text', people.length === 1 ? (people[0].name || people[0].phone)
+                                                         : `${people.length} people, one at a time`);
+      return;
+    }
+
     if(isHandheld()){
       TEXT_QUEUE = null; showTextQueue();
       const who = people.length === 1 ? people[0].phone : `${people.length} people`;
@@ -5721,20 +5797,17 @@ create policy "app access" on critical_path
     });
   });
 
-  document.getElementById('copyTextBtn').addEventListener('click', () => {
-    const p = PARTNERS[document.getElementById('exportPartnerSelect').value];
-    if(!p) return;
-    copyWords(buildScheduleText(p, 1),
-      'This week is copied. Open Phone Link, start the message yourself, and press Ctrl+V.');
-  });
-
   document.getElementById('copyImageBtn').addEventListener('click', async () => {
     const p = PARTNERS[document.getElementById('exportPartnerSelect').value];
     if(!p) return;
     try {
       const blob = await canvasBlob(p);
+      const second = gmsgOn();
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      setSendStatus('Picture copied — paste it into an email, Teams, or a text with Ctrl+V.', 'ok');
+      setSendStatus(second
+        ? 'Picture copied. Press Ctrl+V in the same message — the words you pasted stay where '
+          + 'they are, and the calendar goes in with them.'
+        : 'Picture copied — paste it into an email, Teams, or a text with Ctrl+V.', 'ok');
     } catch(err){
       setSendStatus('This browser blocked copying images. Use Download This PNG below instead.', 'bad');
     }
@@ -6467,6 +6540,75 @@ create policy "app access" on critical_path
     updateTxtWeeksNote();
     markDirty();
   });
+
+  // One setting, shown on both screens that send a text. Changing either moves the
+  // other, so there is never a disagreement on screen about what the button will do.
+  // Set once the choosers are wired. Before that there is no board to redraw.
+  let TEXT_APP_READY = false;
+  const TEXT_APP_NOTE = {
+    google: 'Copies the whole schedule as one picture \u2014 calendar and dates written underneath. '
+          + 'Paste it into Google Messages with Ctrl+V. Nothing is handed to Windows.',
+    phone:  'Hands Windows the message, already written and addressed. Opens whichever app '
+          + 'Windows has set for texts, normally Phone Link, which sends it through your phone.'
+  };
+
+  function textAppSync(){
+    const v = gmsgOn() ? 'google' : 'phone';
+    ['textAppSel', 'jvTextAppSel'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el && el.value !== v) el.value = v;
+    });
+    ['textAppNote', 'jvTextAppNote'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = TEXT_APP_NOTE[v];
+    });
+    // The opener is only any use on the setting that needs it.
+    ['textAppOpen', 'jvTextAppOpen'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.hidden = (v !== 'google');
+    });
+    // On Google Messages the day-by-day list is always in the picture, so the tick box
+    // has no say. Greyed rather than hidden, so it is clear why it cannot be changed.
+    const chk = document.getElementById('jvListChk');
+    if(chk){
+      chk.disabled = (v === 'google');
+      const row = chk.closest('label');
+      if(row){
+        row.style.opacity = (v === 'google') ? '.55' : '';
+        row.title = (v === 'google')
+          ? 'Always on for Google Messages \u2014 the picture is the whole message'
+          : 'Off by default \u2014 the calendar says it all';
+      }
+    }
+    // Rebuild the picture so the list appears or disappears with the setting — but not
+    // while the page is still starting up, when there is no board to draw yet.
+    if(TEXT_APP_READY){
+      try { jvRefreshSend(); } catch(_){ /* no board open yet */ }
+    }
+  }
+
+  (function wireTextApp(){
+    ['textAppSel', 'jvTextAppSel'].forEach(id => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.addEventListener('change', () => {
+        try { window.localStorage.setItem(GMSG_KEY, el.value === 'google' ? '1' : '0'); } catch(_){}
+        textAppSync();
+        setSendStatus(el.value === 'google'
+          ? 'Text It will copy each schedule for Google Messages.'
+          : 'Text It will hand the message to Windows, which opens Phone Link.', 'ok');
+      });
+    });
+    ['textAppOpen', 'jvTextAppOpen'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('click', () => {
+        SEND_STATUS_ID = (id === 'jvTextAppOpen') ? 'jvStatus' : 'sendStatus';
+        openGoogleMessages();
+      });
+    });
+    textAppSync();
+    TEXT_APP_READY = true;
+  })();
 
   document.getElementById('attachDraftChk').addEventListener('change', (e) => {
     if(e.target.checked) e.target.setAttribute('checked', '');
@@ -8394,6 +8536,9 @@ create policy "app access" on critical_path
   }
 
   function jvWantsList(){
+    // On the Google Messages setting the picture is the whole message — there is no
+    // second thing to paste — so the written schedule always goes in it.
+    if(gmsgOn()) return true;
     const c = document.getElementById('jvListChk');
     return !!(c && c.checked);
   }
@@ -8505,7 +8650,12 @@ create policy "app access" on critical_path
     document.getElementById('jvTextBtn').addEventListener('click', () => {
       focusHere();
       const o = jvSendOpts('text');
-      if(o) sendWithPicture(o);
+      if(!o) return;
+      if(gmsgOn() && !isHandheld()){
+        sendPictureToGoogle(JV_PK, 'full', (JV_PK && JV_PK.cl.name) || 'the leader');
+        return;
+      }
+      sendWithPicture(o);
     });
     document.getElementById('jvCopyBtn').addEventListener('click', async () => {
       focusHere();
@@ -8513,22 +8663,19 @@ create policy "app access" on critical_path
       setSendStatus('Getting the picture ready…');
       const file = await pngFileEventually(JV_PK, 'full');
       if(!file){ setSendStatus('Could not build the picture.', 'bad', true); return; }
+      // Second of the two pastes on the Google Messages setting: the words are already
+      // in the message box, and this goes in underneath them.
+      const second = gmsgOn();
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': file })]);
-        setSendStatus('Copied — paste it wherever you like with Ctrl+V.', 'ok', true);
+        setSendStatus(second
+          ? 'Picture copied. Press Ctrl+V in the same message — the words you pasted stay where '
+            + 'they are, and the calendar goes in with them.'
+          : 'Copied — paste it wherever you like with Ctrl+V.', 'ok', true);
       } catch(_){
         downloadFile(file);
         setSendStatus(`Copying was blocked, so it downloaded as ${file.name}.`, 'bad', true);
       }
-    });
-    // The schedule as text, for starting the message yourself. No link to Windows is
-    // involved, so there is nothing in the way.
-    document.getElementById('jvWordsBtn').addEventListener('click', () => {
-      focusHere();
-      if(!JV_PK) return;
-      copyWords(jvMessage(JV_PK),
-        'The schedule is copied. Open Phone Link, start the message to '
-        + `${JV_PK.cl.name || 'the leader'} yourself, and press Ctrl+V.`);
     });
     document.getElementById('jvDownBtn').addEventListener('click', async () => {
       focusHere();
