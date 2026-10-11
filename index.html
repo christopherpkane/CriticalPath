@@ -464,30 +464,31 @@
   .jv-tile-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
   .jv-tile-name { font-weight: 700; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .jv-tile-cl { font-size: 10.5px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
-  .jv-strip { display: grid; grid-template-columns: repeat(20, 1fr); gap: 1px; height: 20px; }
+  /* Four weeks down, five weekdays across, with the Monday of each week down the side.
+     A calendar needs no rules drawn between its weeks and no scale underneath — the
+     shape of the block says where in the month it falls. */
+  .jv-cal { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+  .jv-cal-h { font-size: 9px; color: var(--text-muted); line-height: 12px;
+              text-align: center; opacity: .55; font-weight: 700; }
   /* Three states only: not this house's time, somebody on it, nobody on it. The trade
      doing the work is not the question being asked here, and colouring it was what made
      a screenful of these unreadable. */
   /* Mixed against the tile rather than set flat, so "light grey" stays light grey on the
      dark theme as well as the light one. */
-  .jv-c { border-radius: 2px;
+  /* Every box says which day it is, the way a wall calendar does. Three backgrounds,
+     so three inks — the number has to stay legible on all of them. */
+  .jv-c { border-radius: 2px; height: 17px;
+          display: flex; align-items: center; justify-content: center;
+          font-style: normal; font-size: 9.5px; font-weight: 600; line-height: 1;
+          color: color-mix(in srgb, var(--text-muted) 80%, transparent);
           background: color-mix(in srgb, var(--text-muted) 32%, var(--surface-1)); }
-  /* A rule between the weeks. Drawn with a shadow rather than a border so it does not
-     take width off the day it sits against and throw the twenty columns out of step. */
-  .jv-c.wk { margin-left: 4px; box-shadow: -3px 0 0 -1px var(--text-muted); }
-  .jv-c.on { background: var(--status-good); }
-  /* Kept deliberately faint. Every tile carries the same four dates, so at full strength
-     it is a hundred labels competing with four houses that actually need looking at. */
-  .jv-scale { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 3px;
-              font-size: 9px; color: var(--text-muted); opacity: .45; }
-  .jv-scale span { text-align: left; padding-left: 1px; }
-  .jv-tile:hover .jv-scale, .jv-tile.flagged .jv-scale { opacity: .75; }
+  .jv-c.on { background: var(--status-good); color: #ffffff; }
   /* A day with nobody on it looks the same whether the house has not started, has
      finished, or is simply quiet — one grey for "nothing scheduled". */
   .jv-c.idle { background: color-mix(in srgb, var(--text-muted) 32%, var(--surface-1)); }
   /* The one exception. A stretch long enough to count as a gap is the whole reason for
      this view, so it keeps its colour while everything else goes quiet. */
-  .jv-c.bad { background: var(--status-warn); }
+  .jv-c.bad { background: var(--status-warn); color: #231a00; }
   .jv-tile-foot { display: flex; margin-top: 6px; font-size: 10.5px; color: var(--text-muted); min-height: 13px; }
   .jv-tile-foot .gap { margin-left: auto; white-space: nowrap; }
   .jv-tile.flagged .jv-tile-foot .gap { color: var(--danger-text); font-weight: 700; }
@@ -7971,22 +7972,27 @@ create policy "app access" on critical_path
       });
       if(start >= 0 && L.cells.length - start >= need){ for(let k = start; k < L.cells.length; k++) flags[k] = true; }
 
-      const strip = L.cells.map((c, i) => {
+      const cell = (c, i) => {
         const cls = ['jv-c'];
-        if(i % 5 === 0 && i) cls.push('wk');
         if(c.on) cls.push('on');
         else if(flags[i]) cls.push('bad');
         else if(c.idle) cls.push('idle');
         // every day says what it is on hover — the exact date and who is on it
         const what = c.on ? c.who : (c.idle ? 'nobody on it' : 'outside this job');
         const tip = `${c.day} ${jvFmt(c.iso)} — ${what}`;
-        return `<i class="${cls.join(' ')}" title="${esc(tip)}"></i>`;
-      }).join('');
+        // the day of the month, printed in the box, as a wall calendar does
+        const num = String(c.iso || '').slice(8, 10).replace(/^0/, '');
+        return `<i class="${cls.join(' ')}" title="${esc(tip)}">${esc(num)}</i>`;
+      };
 
-      // Four marks rather than twenty: the Monday of each week, which is enough to know
-      // where in the month a block sits.
-      const scale = [0, 5, 10, 15].map(i =>
-        `<span>${esc(jvFmt((L.cells[i] || {}).iso))}</span>`).join('');
+      // Days of the week across the top, then a row per week beneath.
+      const head = ['M', 'T', 'W', 'T', 'F']
+        .map(d => `<span class="jv-cal-h">${d}</span>`).join('');
+      const weeks = [0, 5, 10, 15].map(w =>
+        L.cells.slice(w, w + 5).map((c, k) => cell(c, w + k)).join('')
+      ).join('');
+
+      const strip = head + weeks;
 
       // The dates live in the tooltip. On screen a tile says its name, its shape, and —
       // only when there is one — how big the hole is.
@@ -7998,8 +8004,7 @@ create policy "app access" on critical_path
           <span class="jv-tile-name">${esc(L.label)}</span>
           <span class="jv-tile-cl">${esc(L.cl || '')}</span>
         </span>
-        <span class="jv-strip">${strip}</span>
-        <span class="jv-scale">${scale}</span>
+        <span class="jv-cal">${strip}</span>
         <span class="jv-tile-foot">
           <span class="gap">${bad ? L.worst + ' days idle' : ''}</span>
         </span>
