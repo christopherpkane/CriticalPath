@@ -449,6 +449,35 @@
                  color: var(--text-secondary); margin: -4px 0 0 0; }
   .jv-dash-ctl select { font-family: inherit; font-size: 12.5px; padding: 3px 6px; border-radius: 6px;
     border: 1px solid var(--border); background: var(--page-plane); color: var(--text-primary); }
+  .jd-head { display: flex; align-items: baseline; gap: 10px; }
+  .jd-head h2 { margin: 0; }
+  .jd-sum { font-size: 12px; color: var(--text-muted); }
+  .jd-ctl { display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+            margin: 10px 0 8px 0; font-size: 13px; color: var(--text-secondary); }
+  .jd-ctl select { font-size: 13px; padding: 5px 8px; }
+  .jd-hint { font-size: 12px; color: var(--text-muted); }
+  .jd-hint.arm { color: var(--status-warn); font-weight: 700; }
+  .jd-mapwrap { position: relative; border: 1px solid var(--border); border-radius: 9px;
+                background: var(--surface-1); overflow: hidden; }
+  .jd-map { display: block; width: 100%; height: auto; }
+  .jd-map.arm { cursor: crosshair; }
+  .jd-bubble { position: absolute; z-index: 5; min-width: 180px; max-width: 260px;
+               background: var(--surface-2, var(--surface-1)); border: 1px solid var(--border);
+               border-radius: 8px; padding: 9px 10px; font-size: 12.5px;
+               box-shadow: 0 6px 18px rgba(0,0,0,.28); }
+  .jd-bubble b { display: block; font-size: 13px; margin-bottom: 2px; }
+  .jd-bubble .who { color: var(--text-muted); font-size: 11.5px; }
+  .jd-bubble .addr { margin: 6px 0; color: var(--text-secondary); }
+  .jd-bubble .row { display: flex; gap: 6px; margin-top: 8px; }
+  .jd-bubble a, .jd-bubble button { font-size: 12px; padding: 4px 9px; }
+  .jd-bubble a { text-decoration: none; }
+  .jd-near { margin: 10px 0 4px 0; font-size: 12.5px; color: var(--text-secondary); }
+  .jd-near .pair { display: inline-block; margin: 0 10px 4px 0; }
+  .jd-near .mi { color: var(--text-muted); }
+  .jd-none { color: var(--text-muted); }
+  #jdTable input.addr { width: 100%; min-width: 150px; }
+  #jdTable input.coord { width: 120px; }
+  #jdTable td .set { white-space: nowrap; }
   .jv-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 9px; margin-top: 12px; }
   .jv-tile {
     text-align: left; font-family: inherit; cursor: pointer; padding: 8px 9px 7px 9px;
@@ -1515,7 +1544,7 @@
     <button class="tab-btn active" data-tab="schedule">Schedule</button>
     <button class="tab-btn" data-tab="rough">Rough-In</button>
     <button class="tab-btn" data-tab="job">Calendar Quick View</button>
-    <button class="tab-btn" data-tab="close">Close Out</button>
+    <button class="tab-btn" data-tab="close">Job Details</button>
     <button class="tab-btn" data-tab="export">Export Images</button>
     <button class="tab-btn" data-tab="sharing">Sharing</button>
   </div>
@@ -1835,6 +1864,36 @@
   </div>
 
   <div id="paneClose" hidden="">
+    <div class="card" id="jdCard">
+      <div class="jd-head">
+        <h2>Where the jobs are</h2>
+        <span class="jd-sum" id="jdSum"></span>
+      </div>
+      <div class="jd-ctl">
+        <label>Call them close at
+          <select id="jdNear" autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1">
+            <option value="2">2 miles</option>
+            <option value="5" selected="">5 miles</option>
+            <option value="10">10 miles</option>
+            <option value="20">20 miles</option>
+          </select>
+        </label>
+        <button type="button" id="jdMarkBtn">+ Add a landmark</button>
+        <span class="jd-hint" id="jdHint"></span>
+      </div>
+      <div class="jd-mapwrap" id="jdMapWrap">
+        <svg id="jdMap" class="jd-map" viewBox="0 0 880 520" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="jd-bubble" id="jdBubble" hidden=""></div>
+      </div>
+      <div class="jd-near" id="jdNearList"></div>
+      <div class="co-wrap"><table class="co-table slim" id="jdTable"></table></div>
+      <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" hidden="" data-help-folded="1">
+        Type a site address against a job and press <b>Set pin</b>, then click the map where the
+        lot is — or paste the coordinates Google Maps gives you on a right click. The pin is only
+        for seeing which houses sit near each other; <b>Directions</b> works off the typed address
+        and needs no pin at all.
+      </p>
+    </div>
     <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><div class="co-note" id="coNote" hidden="" data-help-folded="1"></div>
     <div class="ask-bar" id="coAskBar" hidden=""></div>
     <div class="co-stats" id="coStats"></div>
@@ -2450,10 +2509,9 @@ create policy "app access" on critical_path
   function queueSaveAll(){
     if(!CLOUD_ON || !cloudReady) return;
     Object.keys(PARTNERS).forEach(id => { localDirty.add(id); pendingSaves.add(id); });
-    localDirty.add(SETTINGS_ROW);
-    pendingSaves.add(SETTINGS_ROW);
+    SHARED_ROWS.forEach(id => { localDirty.add(id); pendingSaves.add(id); });
     Object.keys(remoteStamps).forEach(id => {
-      if(id !== SETTINGS_ROW && !PARTNERS[id]) pendingDeletes.add(id);
+      if(!isShared(id) && !PARTNERS[id]) pendingDeletes.add(id);
     });
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSaves, 400);
@@ -2532,6 +2590,14 @@ create policy "app access" on critical_path
 
   const TABLE = 'critical_path';
   const SETTINGS_ROW = '__settings';
+  const ROSTER_ROW   = '__roster';
+  const ROUGH_ROW    = '__roughin';
+  const CLOSE_ROW    = '__closeout';
+  const PLACES_ROW   = '__places';
+  // Everything that is not a trade partner's board. Kept apart so two people working on
+  // different things never write the same record.
+  const SHARED_ROWS  = [SETTINGS_ROW, ROSTER_ROW, ROUGH_ROW, CLOSE_ROW, PLACES_ROW];
+  const isShared = id => SHARED_ROWS.indexOf(id) >= 0;
 
   let remoteStamps = {};            // row id -> the updated_at we have already applied
   let pendingSaves = new Set();
@@ -2734,21 +2800,217 @@ create policy "app access" on critical_path
     try { return await decryptValue(data); } catch(_){ return null; }
   }
 
+  // The contents of a record, before encryption. Split out from rowFor so the same thing
+  // can be compared with what is already stored without encrypting it first — encrypting
+  // the same contents twice gives different bytes, so ciphertext cannot be compared.
+  function rowRaw(id){
+    switch(id){
+      case SETTINGS_ROW: return { anchorDate: toISODate(anchorDate), watchOn: watchOn,
+                                  daysAskOn: DAYS_ASK_ON, catColors: CAT_COLORS,
+                                  clAdded: CL_ADDED, clHidden: CL_HIDDEN };
+      case ROSTER_ROW:   return { roster: ROSTER, jobSeen: JOB_SEEN, jobRetired: JOB_RETIRED };
+      case ROUGH_ROW:    return { roughRows: riSerialize(), riIgnored: RI_IGNORED };
+      case CLOSE_ROW:    return { closeOuts: CLOSE_OUTS, coGraders: CO_GRADERS };
+      case PLACES_ROW:   return { jobPlaces: JOB_PLACES, mapMarks: MAP_MARKS };
+      default:           return PARTNERS[id];
+    }
+  }
+
+  // One reader for all five, and for an older record that still holds the lot. Every
+  // field is taken if it is there and ignored if it is not, so the shape of the record
+  // it came from does not matter.
+  let sawLegacySettings = false;
+  // True once the four separated records exist. From then on the old all-in-one record is
+  // read for its own settings only, never for the rest.
+  let SPLIT_DONE = false;
+  function applyShared(id, data){
+    if(!data || typeof data !== 'object') return;
+    if(id === SETTINGS_ROW){
+      const d = parseISODate(data.anchorDate);
+      if(d) anchorDate = mondayOf(d);
+      if(typeof data.watchOn === 'boolean') watchOn = data.watchOn;
+      if(typeof data.daysAskOn === 'boolean') daysAskSet(data.daysAskOn);
+      if(data.catColors && typeof data.catColors === 'object'){ loadCatColors(data.catColors); tcRender(); }
+      if(Array.isArray(data.clAdded)) CL_ADDED = data.clAdded.slice();
+      if(Array.isArray(data.clHidden)) CL_HIDDEN = data.clHidden.slice();
+      // An older record carries the other four inside it. Read them from here, and note
+      // that they need writing out into their own records.
+      //
+      // Only until the four exist. After that this record's leftovers are ignored, because
+      // a colleague still running the previous version keeps writing the old shape into it
+      // — and letting that back in would undo everyone's work every time they saved.
+      if(!SPLIT_DONE &&
+         ('roster' in data || 'roughRows' in data || 'closeOuts' in data || 'jobPlaces' in data)){
+        sawLegacySettings = true;
+        applyShared(ROSTER_ROW, data);
+        applyShared(ROUGH_ROW, data);
+        applyShared(CLOSE_ROW, data);
+        applyShared(PLACES_ROW, data);
+      }
+      return;
+    }
+    if(id === ROSTER_ROW){
+      if(data.roster && typeof data.roster === 'object') ROSTER = data.roster;
+      if(data.jobSeen && typeof data.jobSeen === 'object') JOB_SEEN = data.jobSeen;
+      if(Array.isArray(data.jobRetired)) JOB_RETIRED = data.jobRetired.slice();
+      return;
+    }
+    if(id === ROUGH_ROW){
+      if(Array.isArray(data.riIgnored)) RI_IGNORED = data.riIgnored.slice();
+      if(Array.isArray(data.roughRows)){ riLoadRows(data.roughRows); riRenderAll(); }
+      return;
+    }
+    if(id === CLOSE_ROW){
+      if(data.closeOuts && typeof data.closeOuts === 'object') CLOSE_OUTS = data.closeOuts;
+      if(Array.isArray(data.coGraders) || data.coGraders === null) CO_GRADERS = data.coGraders;
+      return;
+    }
+    if(id === PLACES_ROW){
+      if(data.jobPlaces && typeof data.jobPlaces === 'object') JOB_PLACES = data.jobPlaces;
+      if(Array.isArray(data.mapMarks)) MAP_MARKS = data.mapMarks.slice();
+      return;
+    }
+  }
+
+  // Queue every shared record. Only the ones whose contents actually changed are
+  // written, so this stays cheap and cannot take anybody else's work off the board.
+  function queueShared(){ SHARED_ROWS.forEach(queueSave); }
+
+  // What each record was last known to hold, as text. Noted whenever local and stored
+  // are known to agree: after the first read, after taking in somebody else's change,
+  // and after one of ours is written.
+  const lastSent = Object.create(null);
+  function rowPrint(id){
+    try { return JSON.stringify(rowRaw(id)); } catch(_){ return null; }
+  }
+  function noteSent(ids){
+    (ids || []).forEach(id => { const p = rowPrint(id); if(p != null) lastSent[id] = p; });
+  }
+
+  // ---------- keeping two people's work on one board ----------
+  const isPlain = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+  function deepSame(a, b){
+    if(a === b) return true;
+    try { return JSON.stringify(a) === JSON.stringify(b); } catch(_){ return false; }
+  }
+
+  // base   what this browser last agreed with the database
+  // mine   what is on this screen
+  // theirs what is stored right now
+  //
+  // Anything only one side changed is taken from that side. Anything both sides changed
+  // keeps what is stored, and is reported.
+  function merge3(base, mine, theirs, trail, clashes){
+    if(deepSame(mine, theirs)) return theirs;      // nobody disagrees
+    if(deepSame(mine, base))   return theirs;      // only they touched it
+    if(deepSame(theirs, base)) return mine;        // only we touched it
+
+    if(isPlain(mine) && isPlain(theirs)){
+      const out = {};
+      const keys = new Set(Object.keys(mine).concat(Object.keys(theirs)));
+      keys.forEach(k => {
+        const b = isPlain(base) ? base[k] : undefined;
+        if(!(k in mine))   { out[k] = theirs[k]; return; }
+        if(!(k in theirs)) { out[k] = mine[k];   return; }
+        out[k] = merge3(b, mine[k], theirs[k], trail.concat([k]), clashes);
+      });
+      return out;
+    }
+
+    if(Array.isArray(mine) && Array.isArray(theirs)){
+      if(mine.length !== theirs.length){
+        // The shape of a week changed under somebody. Everything after the change has
+        // moved, so merging by position would put jobs on the wrong days. Take what is
+        // stored and say so.
+        clashes.push({ trail: trail, shape: true });
+        return theirs;
+      }
+      const b = Array.isArray(base) && base.length === mine.length ? base : [];
+      return mine.map((v, i) => merge3(b[i], v, theirs[i], trail.concat([i]), clashes));
+    }
+
+    // A plain value both sides changed. What is stored was there first and stays.
+    clashes.push({ trail: trail, mine: mine, theirs: theirs });
+    return theirs;
+  }
+
+  // Turns weeks/1/days/2/jobs/0 into something a person can act on.
+  function clashWhere(id, trail){
+    const p = PARTNERS[id];
+    const who = p && p.name ? p.name : (isShared(id) ? 'the schedule' : id);
+    if(p && trail[0] === 'weeks'){
+      const wk = (p.weeks || [])[trail[1]];
+      const day = wk && (wk.days || [])[trail[3]];
+      if(day && day.date) return `${who}, ${fmtDate(day.date)}`;
+      if(wk && wk.label) return `${who}, ${wk.label}`;
+    }
+    return who;
+  }
+
+  function sayClashes(id, clashes){
+    if(!clashes.length) return;
+    const shape = clashes.filter(c => c.shape).length;
+    const first = clashes.find(c => !c.shape);
+    if(shape){
+      historySays(`A job column on ${clashWhere(id, clashes[0].trail)} was added or removed by `
+        + `somebody else while you were typing — that week was left as they saved it. `
+        + `Please make your change again.`, 9000);
+      return;
+    }
+    const where = clashWhere(id, first.trail);
+    const mine = String(first.mine == null ? '' : first.mine).trim();
+    const kept = String(first.theirs == null ? '' : first.theirs).trim();
+    historySays(clashes.length === 1
+      ? `${where} was already changed by somebody else — theirs (${kept || 'blank'}) was kept, `
+        + `yours (${mine || 'blank'}) was not.`
+      : `${clashes.length} cells on ${where} had already been changed by somebody else — `
+        + `theirs were kept. The first was ${kept || 'blank'}, where you typed ${mine || 'blank'}.`,
+      9000);
+  }
+
+  // Before writing, take in anything that has been stored since we last looked, and keep
+  // both people's work. Returns the ids that are still worth writing.
+  async function mergeBeforeWrite(ids){
+    if(!ids.length) return ids;
+    try {
+      const list = ids.map(i => `"${i}"`).join(',');
+      const res = await cloudFetch(`${TABLE}?select=id,updated_at&id=in.(${encodeURIComponent(list)})`,
+                                    { headers: cloudHeaders() });
+      const now = await res.json();
+      const moved = now.filter(r => remoteStamps[r.id] && remoteStamps[r.id] !== r.updated_at)
+                       .map(r => r.id);
+      if(!moved.length) return ids;
+
+      const l2 = moved.map(i => `"${i}"`).join(',');
+      const r2 = await cloudFetch(`${TABLE}?select=id,data,updated_at&id=in.(${encodeURIComponent(l2)})`,
+                                   { headers: cloudHeaders() });
+      for(const r of await r2.json()){
+        const theirs = await readRowData(r.data);
+        if(theirs == null) continue;               // locked with a key we do not hold
+        let base = null;
+        try { base = lastSent[r.id] ? JSON.parse(lastSent[r.id]) : null; } catch(_){ base = null; }
+        const mine = rowRaw(r.id);
+        const clashes = [];
+        const merged = merge3(base, mine, theirs, [], clashes);
+        if(isShared(r.id)) applyShared(r.id, merged);
+        else PARTNERS[r.id] = merged;
+        remoteStamps[r.id] = r.updated_at;
+        sayClashes(r.id, clashes);
+      }
+      redateEveryone();
+      redrawFromRemote();
+    } catch(_){ /* could not look — write as before rather than lose the edit */ }
+    return ids;
+  }
+
   async function rowFor(id){
-    const raw = id === SETTINGS_ROW
-      ? { anchorDate: toISODate(anchorDate), roster: ROSTER, watchOn: watchOn,
-          daysAskOn: DAYS_ASK_ON, catColors: CAT_COLORS,
-          closeOuts: CLOSE_OUTS, coGraders: CO_GRADERS, jobSeen: JOB_SEEN,
-          roughRows: riSerialize(), riIgnored: RI_IGNORED,
-          clAdded: CL_ADDED, clHidden: CL_HIDDEN,
-      jobRetired: JOB_RETIRED }
-      : PARTNERS[id];
+    const raw = rowRaw(id);
     const data = (cryptoState === 'unlocked' && cryptoKey) ? await encryptValue(raw) : raw;
     return { id, data, updated_at: stampNow() };
   }
 
   async function cloudPushAll(){
-    const ids = Object.keys(PARTNERS).concat([SETTINGS_ROW]);
+    const ids = Object.keys(PARTNERS).concat(SHARED_ROWS);
     const rows = await Promise.all(ids.map(rowFor));
     // Ask for the stored rows back and keep THOSE timestamps. Keeping the ones generated
     // here meant they never matched what the database wrote, so the very next poll saw
@@ -2763,6 +3025,9 @@ create policy "app access" on critical_path
     try { back = await wrote.json(); } catch(_){ back = null; }
     if(Array.isArray(back) && back.length) back.forEach(r => { if(r && r.id) remoteStamps[r.id] = r.updated_at; });
     else rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+    // Everything has just been published, so stored and local agree. Without this the
+    // very next edit would write all thirty-six records again.
+    noteSent(ids);
   }
 
   async function cloudLoadAll(){
@@ -2779,26 +3044,20 @@ create policy "app access" on critical_path
     }
 
     const next = {};
-    for(const r of rows){
+    // The five come first and an older all-in-one record last, so where both exist the
+    // newer, separated ones win and the old one cannot put stale contents back.
+    const order = r => (r.id === SETTINGS_ROW ? 2 : isShared(r.id) ? 0 : 1);
+    const ordered = rows.slice().sort((a, b) => order(a) - order(b));
+    for(const r of ordered){
       if(r.id === CRYPTO_ROW) continue;
       remoteStamps[r.id] = r.updated_at;
       const data = await readRowData(r.data);
       if(data == null) continue;
-      if(r.id === SETTINGS_ROW){
-        const d = parseISODate(data.anchorDate);
-        if(d) anchorDate = mondayOf(d);
-        if(data.roster && typeof data.roster === 'object') ROSTER = data.roster;
-        if(typeof data.watchOn === 'boolean') watchOn = data.watchOn;
-        if(typeof data.daysAskOn === 'boolean') daysAskSet(data.daysAskOn);
-        if(data.catColors && typeof data.catColors === 'object'){ loadCatColors(data.catColors); tcRender(); }
-        if(data.closeOuts && typeof data.closeOuts === 'object') CLOSE_OUTS = data.closeOuts;
-            if(data.jobSeen && typeof data.jobSeen === 'object') JOB_SEEN = data.jobSeen;
-        if(Array.isArray(data.coGraders) || data.coGraders === null) CO_GRADERS = data.coGraders;
-        if(Array.isArray(data.riIgnored)) RI_IGNORED = data.riIgnored.slice();
-        if(Array.isArray(data.clAdded)) CL_ADDED = data.clAdded.slice();
-        if(Array.isArray(data.clHidden)) CL_HIDDEN = data.clHidden.slice();
-        if(Array.isArray(data.jobRetired)) JOB_RETIRED = data.jobRetired.slice();
-        if(Array.isArray(data.roughRows)){ riLoadRows(data.roughRows); riRenderAll(); }
+      if(isShared(r.id)){
+        // Noted before applying, because the four are read before the old record is, and
+        // by the time that one is reached it must already know to ignore its leftovers.
+        if(r.id !== SETTINGS_ROW) SPLIT_DONE = true;
+        applyShared(r.id, data);
       } else {
         next[r.id] = data;
       }
@@ -2808,6 +3067,18 @@ create policy "app access" on critical_path
     // whatever order the rows came back in.
     redateEveryone();
     if(!PARTNERS[selectedId]) selectedId = sortedPartnerIds()[0] || null;
+    // Taken after redating, because redating can change a board — and what is noted has
+    // to be what we would send, not what arrived.
+    noteSent(Object.keys(PARTNERS).concat(SHARED_ROWS));
+    // An existing schedule still has everything in the one old record. Its contents have
+    // just been read; write them out into the five so that from now on they are apart.
+    // Queued, not written here, so a failure retries like any other save.
+    if(sawLegacySettings){
+      sawLegacySettings = false;
+      SPLIT_DONE = true;
+      [ROSTER_ROW, ROUGH_ROW, CLOSE_ROW, PLACES_ROW].forEach(id => { delete lastSent[id]; });
+      setTimeout(queueShared, 0);
+    }
     return true;
   }
 
@@ -2816,7 +3087,9 @@ create policy "app access" on critical_path
     localDirty.add(id);
     pendingSaves.add(id);
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(flushSaves, 700);
+    // Sooner than it was. The shorter the gap between typing and storing, the less often
+    // two people are working from different copies in the first place.
+    saveTimer = setTimeout(flushSaves, 300);
   }
   function queueDelete(id){
     if(!CLOUD_ON || !cloudReady) return;
@@ -2834,14 +3107,31 @@ create policy "app access" on critical_path
     // Never write while the schedule is locked — we would push unencrypted data into an
     // encrypted table, or overwrite good rows with a half-loaded state.
     if(cryptoState === 'locked') return;
-    const ids = [...pendingSaves].filter(id => id === SETTINGS_ROW || PARTNERS[id]);
+    const queued = [...pendingSaves].filter(id => isShared(id) || PARTNERS[id]);
+    // The whole point. Forty-six places queue every record out of caution; only the ones
+    // whose contents actually differ from what is stored are written. Everything else
+    // would be putting back what is already there — and taking somebody else's newer
+    // work off the board with it.
+    const ids = queued.filter(id => {
+      const p = rowPrint(id);
+      return p == null || lastSent[id] !== p;
+    });
     const dels = [...pendingDeletes];
-    if(!ids.length && !dels.length) return;
     pendingSaves.clear();
     pendingDeletes.clear();
+    if(!ids.length && !dels.length){
+      // Nothing of ours to write. Anything queued but unchanged is settled, so it must
+      // not stay marked as ours or the poll will keep refusing other people's copies.
+      queued.forEach(id => { if(!pendingSaves.has(id)) localDirty.delete(id); });
+      if(queued.length){ isDirty = false; updateSaveStatus(); setSync('synced'); }
+      return;
+    }
     setSync('saving');
     try {
       if(ids.length){
+        // Take in anything stored since we last looked, so what goes up carries both
+        // people's work rather than replacing theirs with our older copy.
+        await mergeBeforeWrite(ids);
         const rows = await Promise.all(ids.map(rowFor));
         // Ask for the stored rows back, so the timestamp kept is the one the database
         // wrote. Keeping our own instead meant it never matched what the next poll read,
@@ -2861,6 +3151,10 @@ create policy "app access" on critical_path
         // Safely stored — unless something has been typed since this write went out, in
         // which case it stays held back for the next one.
         ids.forEach(id => { if(!pendingSaves.has(id)) localDirty.delete(id); });
+        // Stored and local now agree, so a later queue of this record writes nothing
+        // unless it really changes again.
+        noteSent(ids.filter(id => !pendingSaves.has(id)));
+        queued.forEach(id => { if(!ids.includes(id) && !pendingSaves.has(id)) localDirty.delete(id); });
       }
       for(const id of dels){
         await cloudFetch(`${TABLE}?id=eq.${encodeURIComponent(id)}`,
@@ -2895,7 +3189,8 @@ create policy "app access" on critical_path
     // a board cell, a column heading, or one of the contact boxes under it
     if(el.closest('#mainPanel') && selectedId) out.push(selectedId);
     // the Rough-In table and the Close Out notes both live in the settings row
-    if(el.closest('#paneRough') || el.closest('#paneClose')) out.push(SETTINGS_ROW);
+    if(el.closest('#paneRough')) out.push(ROUGH_ROW);
+    if(el.closest('#paneClose')) { out.push(CLOSE_ROW); out.push(PLACES_ROW); }
     return out;
   }
 
@@ -2922,8 +3217,10 @@ create policy "app access" on critical_path
     // Anything queued, in flight, or otherwise not yet committed is left as it is on
     // screen. The database's copy of those is older than what is in front of the person
     // typing, and applying it would take their work back off the board.
-    const skip = new Set([...pendingSaves, ...pendingDeletes, ...localDirty,
-                          ...rowsBeingEdited()]);
+    // Only a record on its way to being deleted is passed over. Everything else is taken
+    // in, because taking it in now means merging it with ours rather than replacing ours
+    // — and refusing it was what stopped two people on one board seeing each other.
+    const skip = new Set([...pendingDeletes]);
     try {
       const res = await cloudFetch(`${TABLE}?select=id,updated_at`, { headers: cloudHeaders() });
       const rows = await res.json();
@@ -2945,36 +3242,41 @@ create policy "app access" on critical_path
         const busy = new Set(rowsBeingEdited());
         for(const r of await r2.json()){
           if(r.id === CRYPTO_ROW){ remoteStamps[r.id] = r.updated_at; continue; }
-          // Left as it was, and its timestamp left alone too, so the next poll offers it
-          // again once the field is free rather than forgetting it ever changed.
-          if(busy.has(r.id)) continue;
-          remoteStamps[r.id] = r.updated_at;
           const data = await readRowData(r.data);
           if(data == null) continue;          // encrypted with a key we don't hold
-          if(r.id === SETTINGS_ROW){
-            const d = parseISODate(data.anchorDate);
-            if(d) anchorDate = mondayOf(d);
-            if(data.roster && typeof data.roster === 'object') ROSTER = data.roster;
-            if(typeof data.watchOn === 'boolean') watchOn = data.watchOn;
-            if(typeof data.daysAskOn === 'boolean') daysAskSet(data.daysAskOn);
-            if(data.catColors && typeof data.catColors === 'object'){ loadCatColors(data.catColors); tcRender(); }
-            if(data.closeOuts && typeof data.closeOuts === 'object') CLOSE_OUTS = data.closeOuts;
-            if(data.jobSeen && typeof data.jobSeen === 'object') JOB_SEEN = data.jobSeen;
-            if(Array.isArray(data.coGraders) || data.coGraders === null) CO_GRADERS = data.coGraders;
-            if(Array.isArray(data.riIgnored)) RI_IGNORED = data.riIgnored.slice();
-            if(Array.isArray(data.clAdded)) CL_ADDED = data.clAdded.slice();
-            if(Array.isArray(data.clHidden)) CL_HIDDEN = data.clHidden.slice();
-            if(Array.isArray(data.jobRetired)) JOB_RETIRED = data.jobRetired.slice();
-            if(Array.isArray(data.roughRows)){ riLoadRows(data.roughRows); riRenderAll(); }
+          // Somebody is typing in this one. Take their change in anyway — keeping
+          // whatever is in the box under the cursor — rather than refusing it, which is
+          // what left two people on one board unable to see each other at all.
+          const ours = busy.has(r.id) || localDirty.has(r.id) || pendingSaves.has(r.id);
+          if(ours){
+            let base = null;
+            try { base = lastSent[r.id] ? JSON.parse(lastSent[r.id]) : null; } catch(_){ base = null; }
+            const clashes = [];
+            const merged = merge3(base, rowRaw(r.id), data, [], clashes);
+            if(isShared(r.id)) applyShared(r.id, merged);
+            else PARTNERS[r.id] = merged;
+            remoteStamps[r.id] = r.updated_at;
+            // Ours now differs from what is stored, so it has to go back up.
+            queueSave(r.id);
+            sayClashes(r.id, clashes);
+            continue;
+          }
+          remoteStamps[r.id] = r.updated_at;
+          if(isShared(r.id)){
+            applyShared(r.id, data);
           } else {
             PARTNERS[r.id] = data;
           }
         }
       }
       removed.forEach(id => { if(id !== CRYPTO_ROW){ delete PARTNERS[id]; } delete remoteStamps[id]; });
+      removed.forEach(id => { delete lastSent[id]; });
       // A partner sent up by somebody else's browser carries whatever dates that browser
       // had. Same rule as at load: put them back in step before anything is drawn.
       redateEveryone();
+      // Theirs is now ours as well, so there is nothing of ours to write back for it —
+      // except the ones we merged into, which were queued as they were merged.
+      noteSent(changed.filter(id => !pendingSaves.has(id)));
       if(!PARTNERS[selectedId]) selectedId = sortedPartnerIds()[0] || null;
       setSync('synced');
       redrawFromRemote();
@@ -2985,16 +3287,40 @@ create policy "app access" on critical_path
 
   // Never yank the DOM out from under someone mid-keystroke — if a field is focused,
   // hold the redraw until they leave it.
+  // What is under the cursor right now, enough to put it back after the board is redrawn.
+  // Matched on the markers the cell carries rather than the element itself, because a
+  // redraw builds new elements.
+  function caretNow(){
+    const el = document.activeElement;
+    if(!el || !el.closest || !el.closest('#mainPanel') || el.value === undefined) return null;
+    const d = el.dataset || {};
+    if(!d.role) return null;
+    return { role: d.role, week: d.week, day: d.day, job: d.job, field: d.field, idx: d.idx,
+             value: el.value, start: el.selectionStart, end: el.selectionEnd };
+  }
+
+  function caretBack(c){
+    if(!c) return;
+    const bits = ['[data-role="' + c.role + '"]'];
+    ['week', 'day', 'job', 'field', 'idx'].forEach(k => {
+      if(c[k] !== undefined && c[k] !== null) bits.push(`[data-${k}="${c[k]}"]`);
+    });
+    const el = document.querySelector('#mainPanel ' + bits.join(''));
+    if(!el || el.value === undefined) return;
+    // The half-typed word belongs to the person, not to whatever just arrived.
+    el.value = c.value;
+    try { el.focus({ preventScroll: true }); el.setSelectionRange(c.start, c.end); } catch(_){}
+  }
+
   function redrawFromRemote(){
-    const active = document.activeElement;
-    if(active && active.closest && active.closest('#mainPanel')){
-      pendingRerender = true;
-      return;
-    }
+    // Used to give up whenever the cursor was on a board, which is exactly when somebody
+    // else's work most needs to appear. It redraws and puts the cursor back instead.
+    const caret = caretNow();
     pendingRerender = false;
     updateAnchorUI();
     renderSidebar();
     renderMain();
+    if(caret) caretBack(caret);
     const pane = document.getElementById('paneExport');
     if(pane && !pane.hidden) renderExportTab();
     if(typeof selPaint === 'function') selPaint();   // the board was rebuilt under it
@@ -3023,7 +3349,7 @@ create policy "app access" on critical_path
     } catch(err){
       setSync('offline');
     }
-    if(!cloudInit._polling){ cloudInit._polling = setInterval(cloudPoll, 5000); }
+    if(!cloudInit._polling){ cloudInit._polling = setInterval(cloudPoll, 2000); }
   }
 
   // ---------- undo / redo ----------
@@ -3096,6 +3422,8 @@ create policy "app access" on critical_path
       partners: JSON.parse(JSON.stringify(PARTNERS)),
       rough: JSON.parse(JSON.stringify(RI_ROWS)),
       roster: JSON.parse(JSON.stringify(ROSTER)),
+      jobPlaces: JSON.parse(JSON.stringify(JOB_PLACES)),
+      mapMarks: JSON.parse(JSON.stringify(MAP_MARKS)),
       retired: JOB_RETIRED.slice(),
       closeOuts: JSON.parse(JSON.stringify(CLOSE_OUTS)),
       jobSeen: JSON.parse(JSON.stringify(JOB_SEEN)),
@@ -3107,6 +3435,8 @@ create policy "app access" on critical_path
     PARTNERS = JSON.parse(JSON.stringify(s.partners));
     if(s.rough) RI_ROWS = JSON.parse(JSON.stringify(s.rough));
     if(s.roster) ROSTER = JSON.parse(JSON.stringify(s.roster));
+    if(s.jobPlaces) JOB_PLACES = JSON.parse(JSON.stringify(s.jobPlaces));
+    if(s.mapMarks) MAP_MARKS = JSON.parse(JSON.stringify(s.mapMarks));
     if(s.retired) JOB_RETIRED = s.retired.slice();
     if(s.closeOuts) CLOSE_OUTS = JSON.parse(JSON.stringify(s.closeOuts));
     if(s.jobSeen) JOB_SEEN = JSON.parse(JSON.stringify(s.jobSeen));
@@ -3183,7 +3513,7 @@ create policy "app access" on critical_path
     endCoalesce();
     isDirty = true;
     touched.forEach(id => queueSave(id));
-    if(elsewhere) queueSave(SETTINGS_ROW);
+    if(elsewhere) queueShared();          // a restore can change any of them
     updateAnchorUI();
     renderSidebar(); renderMain();
     riRenderAll();                       // the snapshot carries the rough-in rows as well
@@ -4143,6 +4473,12 @@ create policy "app access" on critical_path
   // ends up on nobody's board, it has quietly fallen out of the schedule — that is the
   // one thing worth interrupting for, so that is the only thing this warns about.
   let ROSTER = (APP_DATA.roster && typeof APP_DATA.roster === 'object') ? APP_DATA.roster : {};
+  // One entry per job: the site address as typed, and the pin if one has been placed.
+  // Kept on the settings row beside the close-out records, so it syncs and encrypts
+  // exactly as they do and needs no new table.
+  let JOB_PLACES = (APP_DATA.jobPlaces && typeof APP_DATA.jobPlaces === 'object') ? APP_DATA.jobPlaces : {};
+  // Your own reference points — the office, a town, a subdivision gate.
+  let MAP_MARKS = Array.isArray(APP_DATA.mapMarks) ? APP_DATA.mapMarks : [];
   let watchOn = APP_DATA.watchOn !== false;
   // Ask how long a crew is on a job the moment its name lands in a cell. On by
   // default because a one-day entry is the exception, not the rule.
@@ -4680,7 +5016,7 @@ create policy "app access" on critical_path
 
     markDirty();
     touched.forEach(pid => queueSave(pid));
-    queueSave(SETTINGS_ROW);
+    queueShared();                          // a rename reaches the list, rough-in and close-out
     return { ok: true, cells: cells.length, partners: touched.size, name: newName };
   }
 
@@ -5887,7 +6223,7 @@ create policy "app access" on critical_path
   async function reEncryptEverything(){
     // republish every row under the current key, and the salt/check row alongside it
     setSync('saving');
-    const ids = Object.keys(PARTNERS).concat([SETTINGS_ROW]);
+    const ids = Object.keys(PARTNERS).concat(SHARED_ROWS);
     const rows = await Promise.all(ids.map(rowFor));
     if(cryptoState === 'unlocked'){
       rows.push({
@@ -5909,6 +6245,7 @@ create policy "app access" on critical_path
     try { back = await wrote.json(); } catch(_){ back = null; }
     if(Array.isArray(back) && back.length) back.forEach(r => { if(r && r.id) remoteStamps[r.id] = r.updated_at; });
     else rows.forEach(r => { remoteStamps[r.id] = r.updated_at; });
+    noteSent(ids);
     setSync('synced');
   }
 
@@ -5998,7 +6335,7 @@ create policy "app access" on critical_path
       setSync('synced');
       showLockScreen(false);
       // polling was not started while locked
-      if(!cloudInit._polling){ cloudInit._polling = setInterval(cloudPoll, 5000); }
+      if(!cloudInit._polling){ cloudInit._polling = setInterval(cloudPoll, 2000); }
     } catch(err){
       cryptoKey = null;
       statusEl.className = 'connect-status bad';
@@ -8028,7 +8365,9 @@ create policy "app access" on critical_path
       const sel = document.getElementById('jvJob');
       if(!sel) return;
       sel.value = tile.getAttribute('data-jvbase');
-      jvRender();
+      // Announced rather than just set, so the send card below hears it as well. Setting
+      // a picker from script tells nobody on its own.
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
       jvDashRender();
       const head = document.getElementById('jvHead');
       if(head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -9878,6 +10217,7 @@ create policy "app access" on critical_path
   });
 
   function coRender(){
+    jdRender();
     const all = coJobs();
     coRenderPick(all);                 // the picker lists every CL, filtered or not
     const list = coFilter(all);
@@ -9886,6 +10226,346 @@ create policy "app access" on critical_path
     coRenderStats(list);               // the averages are about what is on screen
     coRenderTable(list);
   }
+
+  // ---------------------------------------------------------------- where the jobs are
+  // Pins are placed by hand. Nothing here calls out to anybody's server, so there is no
+  // address lookup to fail on a site network and no account to expire. Directions are a
+  // plain maps link, which resolves the typed address by itself.
+  let JD_ARMED = null;        // the job (or '#mark') waiting for a click on the map
+  let JD_OPEN = null;         // the pin whose bubble is showing
+
+  function jdNum(v){ const n = Number(v); return isFinite(n) ? n : null; }
+
+  function jdJobs(){
+    return coJobs().map(j => {
+      const k = jobKey(j.label);
+      const p = (JOB_PLACES && JOB_PLACES[k]) || {};
+      return { key: k, label: j.label, cl: j.cl || '', addr: p.addr || '',
+               lat: jdNum(p.lat), lon: jdNum(p.lon),
+               closed: !!(j.row && j.row.closed) };
+    });
+  }
+
+  function jdSet(key, patch){
+    if(!key) return;
+    const prev = (JOB_PLACES && JOB_PLACES[key]) || {};
+    JOB_PLACES[key] = Object.assign({}, prev, patch);
+    const e = JOB_PLACES[key];
+    if(!e.addr && e.lat == null && e.lon == null) delete JOB_PLACES[key];
+    markDirty();
+    queueSave(PLACES_ROW);
+  }
+
+  // Straight-line distance in miles. Good enough to say which houses are near each
+  // other; it is not a driving distance and does not pretend to be.
+  function jdMiles(a, b){
+    const R = 3958.8, rad = Math.PI / 180;
+    const dLa = (b.lat - a.lat) * rad, dLo = (b.lon - a.lon) * rad;
+    const la0 = a.lat * rad, la1 = b.lat * rad;
+    const h = Math.sin(dLa / 2) ** 2 + Math.cos(la0) * Math.cos(la1) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  // The window the map shows: everything placed, with air around it. Before anything is
+  // placed it opens on the country around Asheville, and the first pin takes over.
+  function jdBounds(pts){
+    if(!pts.length) return { la0: 35.25, la1: 35.92, lo0: -82.98, lo1: -82.18 };
+    let la0 = 90, la1 = -90, lo0 = 180, lo1 = -180;
+    pts.forEach(p => {
+      la0 = Math.min(la0, p.lat); la1 = Math.max(la1, p.lat);
+      lo0 = Math.min(lo0, p.lon); lo1 = Math.max(lo1, p.lon);
+    });
+    const padLa = Math.max((la1 - la0) * 0.2, 0.03);
+    const padLo = Math.max((lo1 - lo0) * 0.2, 0.04);
+    return { la0: la0 - padLa, la1: la1 + padLa, lo0: lo0 - padLo, lo1: lo1 + padLo };
+  }
+
+  const JD_W = 880, JD_H = 520, JD_PAD = 34;
+
+  // Longitude squeezed by the cosine of the latitude, so a mile across looks like a mile
+  // up and the shape of a cluster is honest.
+  function jdProj(b){
+    const midLa = (b.la0 + b.la1) / 2;
+    const kx = Math.cos(midLa * Math.PI / 180);
+    const wDeg = (b.lo1 - b.lo0) * kx, hDeg = (b.la1 - b.la0);
+    const sc = Math.min((JD_W - JD_PAD * 2) / (wDeg || 1e-6), (JD_H - JD_PAD * 2) / (hDeg || 1e-6));
+    const cx = (JD_W) / 2, cy = (JD_H) / 2;
+    const midLo = (b.lo0 + b.lo1) / 2;
+    return {
+      x: lon => cx + (lon - midLo) * kx * sc,
+      y: lat => cy - (lat - midLa) * sc,
+      lon: x => midLo + (x - cx) / (kx * sc),
+      lat: y => midLa - (y - cy) / sc,
+      milesPerUnit: 69.172 / sc            // a degree of latitude, in miles, per unit
+    };
+  }
+
+  function jdRenderMap(){
+    const svg = document.getElementById('jdMap');
+    if(!svg) return;
+    const jobs = jdJobs().filter(j => j.lat != null && j.lon != null);
+    const marks = (MAP_MARKS || []).filter(m => jdNum(m.lat) != null && jdNum(m.lon) != null);
+    const pts = jobs.concat(marks.map(m => ({ lat: jdNum(m.lat), lon: jdNum(m.lon) })));
+    const b = jdBounds(pts);
+    const P = jdProj(b);
+    svg.__proj = P;
+
+    const bits = [`<rect x="0" y="0" width="${JD_W}" height="${JD_H}" fill="var(--surface-1)"/>`];
+
+    // a grid of whole tenths of a degree, labelled where it meets the edge
+    const step = (b.la1 - b.la0) > 0.6 ? 0.2 : (b.la1 - b.la0) > 0.25 ? 0.1 : 0.05;
+    const r2 = v => Math.round(v * 1000) / 1000;
+    for(let la = Math.ceil(b.la0 / step) * step; la <= b.la1; la += step){
+      const y = P.y(la);
+      bits.push(`<line x1="0" y1="${y.toFixed(1)}" x2="${JD_W}" y2="${y.toFixed(1)}" `
+        + `stroke="var(--border)" stroke-width="1" opacity=".55"/>`);
+      bits.push(`<text x="4" y="${(y - 3).toFixed(1)}" font-size="9" fill="var(--text-muted)" `
+        + `opacity=".7">${r2(la)}\u00b0N</text>`);
+    }
+    for(let lo = Math.ceil(b.lo0 / step) * step; lo <= b.lo1; lo += step){
+      const x = P.x(lo);
+      bits.push(`<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${JD_H}" `
+        + `stroke="var(--border)" stroke-width="1" opacity=".55"/>`);
+      bits.push(`<text x="${(x + 3).toFixed(1)}" y="${JD_H - 5}" font-size="9" `
+        + `fill="var(--text-muted)" opacity=".7">${r2(Math.abs(lo))}\u00b0W</text>`);
+    }
+
+    // a scale bar, in whole miles
+    const want = 120;                                   // about this many units long
+    let miles = want * P.milesPerUnit;
+    const nice = [1, 2, 5, 10, 20, 25, 50, 100];
+    miles = nice.reduce((a, c) => Math.abs(c - miles) < Math.abs(a - miles) ? c : a, nice[0]);
+    const barW = miles / P.milesPerUnit;
+    const bx = JD_W - barW - 18, by = JD_H - 22;
+    bits.push(`<line x1="${bx.toFixed(1)}" y1="${by}" x2="${(bx + barW).toFixed(1)}" y2="${by}" `
+      + `stroke="var(--text-secondary)" stroke-width="2"/>`);
+    bits.push(`<line x1="${bx.toFixed(1)}" y1="${by - 4}" x2="${bx.toFixed(1)}" y2="${by + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`);
+    bits.push(`<line x1="${(bx + barW).toFixed(1)}" y1="${by - 4}" x2="${(bx + barW).toFixed(1)}" y2="${by + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`);
+    bits.push(`<text x="${(bx + barW / 2).toFixed(1)}" y="${by - 7}" font-size="10" `
+      + `text-anchor="middle" fill="var(--text-secondary)">${miles} mile${miles === 1 ? '' : 's'}</text>`);
+
+    // your landmarks, behind the jobs
+    marks.forEach((m, i) => {
+      const x = P.x(jdNum(m.lon)), y = P.y(jdNum(m.lat));
+      bits.push(`<g class="jd-mark" data-jdmark="${i}">`
+        + `<path d="M ${x.toFixed(1)} ${(y - 6).toFixed(1)} l 6 6 l -6 6 l -6 -6 z" `
+        + `fill="var(--text-muted)" opacity=".8"/>`
+        + `<text x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="10.5" `
+        + `fill="var(--text-muted)">${esc(m.name || 'landmark')}</text></g>`);
+    });
+
+    // the houses
+    jobs.forEach(j => {
+      const x = P.x(j.lon), y = P.y(j.lat);
+      const fill = j.closed ? 'var(--text-muted)' : 'var(--status-good)';
+      bits.push(`<g class="jd-pin" data-jdkey="${esc(j.key)}" style="cursor:pointer">`
+        + `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="${fill}" `
+        + `stroke="var(--surface-1)" stroke-width="2"><title>${esc(j.label
+            + (j.addr ? ' \u2014 ' + j.addr : ''))}</title></circle>`
+        + `<text x="${(x + 10).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" `
+        + `font-weight="600" fill="var(--text-primary)">${esc(j.label)}</text></g>`);
+    });
+
+    if(!jobs.length && !marks.length){
+      bits.push(`<text x="${JD_W / 2}" y="${JD_H / 2}" font-size="13" text-anchor="middle" `
+        + `fill="var(--text-muted)">No pins yet \u2014 put an address against a job below, `
+        + `press Set pin, then click where the lot is.</text>`);
+    }
+    svg.innerHTML = bits.join('');
+  }
+
+  function jdRenderNear(){
+    const el = document.getElementById('jdNearList');
+    if(!el) return;
+    const sel = document.getElementById('jdNear');
+    const within = Number(sel && sel.value) || 5;
+    const jobs = jdJobs().filter(j => j.lat != null && j.lon != null && !j.closed);
+    const pairs = [];
+    for(let i = 0; i < jobs.length; i++)
+      for(let k = i + 1; k < jobs.length; k++){
+        const d = jdMiles(jobs[i], jobs[k]);
+        if(d <= within) pairs.push({ a: jobs[i], b: jobs[k], d: d });
+      }
+    pairs.sort((x, y) => x.d - y.d);
+    el.innerHTML = !jobs.length
+      ? '<span class="jd-none">Nothing pinned yet.</span>'
+      : (pairs.length
+          ? `<b>Within ${within} miles:</b> ` + pairs.map(p =>
+              `<span class="pair">${esc(p.a.label)} \u2194 ${esc(p.b.label)} `
+              + `<span class="mi">${p.d < 1 ? (Math.round(p.d * 10) / 10) : Math.round(p.d)} mi</span></span>`).join('')
+          : `<span class="jd-none">No two pinned houses are within ${within} miles of each other.</span>`);
+  }
+
+  function jdRenderSum(){
+    const el = document.getElementById('jdSum');
+    if(!el) return;
+    const jobs = jdJobs();
+    const pinned = jobs.filter(j => j.lat != null && j.lon != null).length;
+    const addr = jobs.filter(j => j.addr).length;
+    el.textContent = `${jobs.length} job${jobs.length === 1 ? '' : 's'} \u00b7 ${addr} with an address `
+      + `\u00b7 ${pinned} pinned`;
+  }
+
+  // Built once and then left alone — a table that rebuilds under you is a table you
+  // cannot type an address into.
+  function jdRenderTable(){
+    const t = document.getElementById('jdTable');
+    if(!t) return;
+    const jobs = jdJobs();
+    t.innerHTML = '<thead><tr><th>Job</th><th>CL</th><th>Site address</th>'
+      + '<th>Pin</th><th></th></tr></thead><tbody>'
+      + (jobs.length ? jobs.map(j => `<tr data-jdrow="${esc(j.key)}">
+          <td>${esc(j.label)}</td>
+          <td>${esc(j.cl)}</td>
+          <td><input class="addr" type="text" value="${esc(j.addr)}" placeholder="site address"
+               autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1"></td>
+          <td><input class="coord" type="text" value="${j.lat != null ? (Math.round(j.lat * 1e5) / 1e5) + ', ' + (Math.round(j.lon * 1e5) / 1e5) : ''}"
+               placeholder="lat, lon" autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1"></td>
+          <td class="set"><button type="button" data-jdpin="${esc(j.key)}">Set pin</button>
+            <button type="button" data-jdclear="${esc(j.key)}">Clear</button></td>
+        </tr>`).join('')
+        : '<tr><td colspan="5" class="jd-none">No jobs on the board yet.</td></tr>')
+      + '</tbody>';
+  }
+
+  function jdRender(){
+    jdRenderSum();
+    jdRenderMap();
+    jdRenderNear();
+    jdRenderTable();
+  }
+
+  // Everything but the table, for after a pin moves — so an address being typed in the
+  // table keeps the cursor it has.
+  function jdRefresh(){
+    jdRenderSum();
+    jdRenderMap();
+    jdRenderNear();
+  }
+
+  function jdHint(msg, armed){
+    const el = document.getElementById('jdHint');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.className = 'jd-hint' + (armed ? ' arm' : '');
+    const map = document.getElementById('jdMap');
+    if(map) map.classList.toggle('arm', !!armed);
+  }
+
+  function jdArm(key, label){
+    JD_ARMED = key;
+    jdHint(key ? `Click the map where ${label} is.` : '', !!key);
+  }
+
+  function jdBubbleFor(key){
+    const wrap = document.getElementById('jdMapWrap');
+    const el = document.getElementById('jdBubble');
+    const svg = document.getElementById('jdMap');
+    if(!wrap || !el || !svg || !svg.__proj) return;
+    const j = jdJobs().find(x => x.key === key);
+    if(!j || j.lat == null){ el.hidden = true; JD_OPEN = null; return; }
+    const box = svg.getBoundingClientRect();
+    const sx = box.width / JD_W, sy = box.height / JD_H;
+    const x = svg.__proj.x(j.lon) * sx, y = svg.__proj.y(j.lat) * sy;
+    const dest = encodeURIComponent(j.addr || `${j.lat},${j.lon}`);
+    el.innerHTML = `<b>${esc(j.label)}</b>`
+      + (j.cl ? `<span class="who">${esc(j.cl)}</span>` : '')
+      + `<div class="addr">${j.addr ? esc(j.addr) : '<i>no address typed</i>'}</div>`
+      + `<div class="row">`
+      + `<a class="primary" target="_blank" rel="noopener" `
+      + `href="https://www.google.com/maps/dir/?api=1&destination=${dest}">Directions</a>`
+      + `<button type="button" data-jdclose="1">Close</button></div>`;
+    el.hidden = false;
+    // kept inside the map, whichever corner the pin is in
+    const w = el.offsetWidth, h = el.offsetHeight;
+    el.style.left = Math.max(4, Math.min(box.width - w - 4, x + 12)) + 'px';
+    el.style.top = Math.max(4, Math.min(box.height - h - 4, y - h / 2)) + 'px';
+    JD_OPEN = key;
+  }
+
+  (function wireJd(){
+    const svg = document.getElementById('jdMap');
+    const table = document.getElementById('jdTable');
+    if(!svg || !table) return;
+
+    svg.addEventListener('click', e => {
+      const box = svg.getBoundingClientRect();
+      const ux = (e.clientX - box.left) * (JD_W / box.width);
+      const uy = (e.clientY - box.top) * (JD_H / box.height);
+      if(JD_ARMED && svg.__proj){
+        const lat = Math.round(svg.__proj.lat(uy) * 1e5) / 1e5;
+        const lon = Math.round(svg.__proj.lon(ux) * 1e5) / 1e5;
+        if(JD_ARMED === '#mark'){
+          const name = (window.prompt('Name this landmark') || '').trim();
+          if(name){ MAP_MARKS.push({ name: name, lat: lat, lon: lon }); markDirty(); queueSave(PLACES_ROW); }
+        } else {
+          jdSet(JD_ARMED, { lat: lat, lon: lon });
+          const row = table.querySelector(`tr[data-jdrow="${CSS.escape(JD_ARMED)}"] input.coord`);
+          if(row) row.value = lat + ', ' + lon;
+        }
+        jdArm(null, '');
+        jdRefresh();
+        return;
+      }
+      const pin = e.target.closest('[data-jdkey]');
+      if(pin) jdBubbleFor(pin.getAttribute('data-jdkey'));
+      else { const b = document.getElementById('jdBubble'); if(b) b.hidden = true; JD_OPEN = null; }
+    });
+
+    const bubble = document.getElementById('jdBubble');
+    if(bubble) bubble.addEventListener('click', e => {
+      if(e.target.closest('[data-jdclose]')){ bubble.hidden = true; JD_OPEN = null; }
+    });
+
+    const markBtn = document.getElementById('jdMarkBtn');
+    if(markBtn) markBtn.addEventListener('click', () => jdArm('#mark', 'the landmark'));
+
+    const near = document.getElementById('jdNear');
+    if(near) near.addEventListener('change', jdRenderNear);
+
+    table.addEventListener('click', e => {
+      const pin = e.target.closest('[data-jdpin]');
+      if(pin){
+        const key = pin.getAttribute('data-jdpin');
+        const row = table.querySelector(`tr[data-jdrow="${CSS.escape(key)}"] td`);
+        jdArm(key, row ? row.textContent.trim() : 'this job');
+        document.getElementById('jdMapWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      const clr = e.target.closest('[data-jdclear]');
+      if(clr){
+        const key = clr.getAttribute('data-jdclear');
+        jdSet(key, { lat: null, lon: null });
+        const inp = table.querySelector(`tr[data-jdrow="${CSS.escape(key)}"] input.coord`);
+        if(inp) inp.value = '';
+        if(JD_OPEN === key){ const b = document.getElementById('jdBubble'); if(b) b.hidden = true; JD_OPEN = null; }
+        jdRefresh();
+      }
+    });
+
+    // Typing an address only stores it. The table is not rebuilt, so the cursor stays
+    // where it is — the same rule the rough-in table learned the hard way.
+    table.addEventListener('input', e => {
+      const row = e.target.closest('[data-jdrow]');
+      if(!row) return;
+      const key = row.getAttribute('data-jdrow');
+      if(e.target.classList.contains('addr')){
+        jdSet(key, { addr: e.target.value.trim() });
+        jdRenderSum();
+        return;
+      }
+      if(e.target.classList.contains('coord')){
+        const m = String(e.target.value).match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+        if(m){
+          jdSet(key, { lat: Number(m[1]), lon: Number(m[2]) });
+          jdRefresh();
+        } else if(!e.target.value.trim()){
+          jdSet(key, { lat: null, lon: null });
+          jdRefresh();
+        }
+      }
+    });
+  })();
 
   function coCsv(){
     const list = coFilter(coJobs());
