@@ -161,6 +161,7 @@
     background: var(--surface-1); color: var(--text-primary);
   }
   .job-edit input { min-width: 190px; }
+  .job-edit input#jeAddr { flex: 1 1 260px; min-width: 240px; }
   .job-edit .je-where { flex: 1 1 100%; font-size: 12px; color: var(--text-muted); }
   .job-edit .je-warn { flex: 1 1 100%; font-size: 12px; color: var(--danger-text); font-weight: 600; }
   .cl-chip button.je-btn { color: var(--text-muted); }
@@ -449,6 +450,8 @@
                  color: var(--text-secondary); margin: -4px 0 0 0; }
   .jv-dash-ctl select { font-family: inherit; font-size: 12.5px; padding: 3px 6px; border-radius: 6px;
     border: 1px solid var(--border); background: var(--page-plane); color: var(--text-primary); }
+  .build-stamp { font-size: 11.5px; color: var(--text-muted); margin: 0 0 10px 2px; }
+  .build-stamp b { color: var(--text-secondary); }
   .jd-head { display: flex; align-items: baseline; gap: 10px; }
   .jd-head h2 { margin: 0; }
   .jd-sum { font-size: 12px; color: var(--text-muted); }
@@ -459,8 +462,18 @@
   .jd-hint.arm { color: var(--status-warn); font-weight: 700; }
   .jd-mapwrap { position: relative; border: 1px solid var(--border); border-radius: 9px;
                 background: var(--surface-1); overflow: hidden; }
-  .jd-map { display: block; width: 100%; height: auto; }
+  .jd-map { display: block; width: 100%; height: 460px; background: var(--surface-1); }
   .jd-map.arm { cursor: crosshair; }
+  .jd-map .leaflet-popup-content { margin: 9px 11px; font-size: 12.5px; }
+  .jd-map .leaflet-popup-content b { display: block; font-size: 13px; }
+  .jd-map .leaflet-popup-content .who { color: #555; font-size: 11.5px; }
+  .jd-map .leaflet-popup-content .addr { margin: 5px 0; }
+  .jd-map-off { padding: 30px 18px; text-align: center; color: var(--text-muted); font-size: 13px;
+                line-height: 1.6; }
+  .jd-map-off b { color: var(--text-secondary); }
+  .jd-found { font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 2px; }
+  .jd-found.approx { color: var(--status-warn); }
+  .jd-found.none { color: var(--danger-text, var(--status-warn)); }
   .jd-bubble { position: absolute; z-index: 5; min-width: 180px; max-width: 260px;
                background: var(--surface-2, var(--surface-1)); border: 1px solid var(--border);
                border-radius: 8px; padding: 9px 10px; font-size: 12.5px;
@@ -471,6 +484,26 @@
   .jd-bubble .row { display: flex; gap: 6px; margin-top: 8px; }
   .jd-bubble a, .jd-bubble button { font-size: 12px; padding: 4px 9px; }
   .jd-bubble a { text-decoration: none; }
+  /* The towns. With no map, the useful question is not how many miles apart two houses
+     are but which ones are in the same place — and that is what the address already says. */
+  .jd-group { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0 2px 0; }
+  .jd-town { border: 1px solid var(--border); border-radius: 9px; background: var(--surface-1);
+             padding: 8px 11px 9px 11px; min-width: 186px; }
+  .jd-town h4 { margin: 0 0 4px 0; font-size: 12.5px; color: var(--text-primary);
+                display: flex; align-items: baseline; gap: 7px; }
+  .jd-town h4 .zip { color: var(--text-muted); font-weight: 400; }
+  .jd-town h4 .n { margin-left: auto; color: var(--text-muted); font-weight: 400; font-size: 11.5px; }
+  .jd-town ul { margin: 0; padding: 0; list-style: none; font-size: 12.5px;
+                color: var(--text-secondary); }
+  .jd-town li { padding: 1px 0; }
+  .jd-town li.shut { color: var(--text-muted); }
+  .jd-town.vague { border-style: dashed; }
+  .jd-nowhere { flex-basis: 100%; margin: 3px 0 0 2px; font-size: 12.5px; color: var(--text-muted); }
+  /* Under the job name, a link and nothing else. The address it opens is the hover. */
+  .co-table td.job { white-space: normal; }
+  .co-table a.co-dir { display: block; font-size: 11px; font-weight: 400;
+      color: var(--series-1); text-decoration: none; margin-top: 2px; }
+  .co-table a.co-dir:hover { text-decoration: underline; }
   .jd-near { margin: 10px 0 4px 0; font-size: 12.5px; color: var(--text-secondary); }
   .jd-near .pair { display: inline-block; margin: 0 10px 4px 0; }
   .jd-near .mi { color: var(--text-muted); }
@@ -1587,6 +1620,7 @@
           </label>
           <label>Day<select id="ajDay" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"><option value="0:0">This Week — Mon 9/14</option><option value="0:1">This Week — Tue 9/15</option><option value="0:2">This Week — Wed 9/16</option><option value="0:3">This Week — Thu 9/17</option><option value="0:4">This Week — Fri 9/18</option><option value="1:0">Next Week — Mon 9/21</option><option value="1:1">Next Week — Tue 9/22</option><option value="1:2">Next Week — Wed 9/23</option><option value="1:3">Next Week — Thu 9/24</option><option value="1:4">Next Week — Fri 9/25</option><option value="2:0">3rd Week — Mon 9/28</option><option value="2:1">3rd Week — Tue 9/29</option><option value="2:2">3rd Week — Wed 9/30</option><option value="2:3">3rd Week — Thu 10/1</option><option value="2:4">3rd Week — Fri 10/2</option><option value="3:0">4th Week — Mon 10/5</option><option value="3:1">4th Week — Tue 10/6</option><option value="3:2">4th Week — Wed 10/7</option><option value="3:3">4th Week — Thu 10/8</option><option value="3:4">4th Week — Fri 10/9</option></select></label>
           <label class="wide">Notes (optional)<input id="ajNote" placeholder="anything you want beside the job — the trackers ignore it" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></label>
+          <label class="wide">Site address (optional)<input id="ajAddr" placeholder="405 Pinners Cove Rd, Arden, NC 28704 — kept off the board, shown on Job Details" autocomplete="off" autocapitalize="off" data-lpignore="true" data-1p-ignore="" data-bwignore="" data-form-type="other" data-nofill="1"></label>
         </div>
         <div class="cl-manage" id="ajJobManage" hidden=""></div>
         <div class="cl-manage" id="ajLeaderManage" hidden=""></div>
@@ -1869,29 +1903,16 @@
         <h2>Where the jobs are</h2>
         <span class="jd-sum" id="jdSum"></span>
       </div>
-      <div class="jd-ctl">
-        <label>Call them close at
-          <select id="jdNear" autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1">
-            <option value="2">2 miles</option>
-            <option value="5" selected="">5 miles</option>
-            <option value="10">10 miles</option>
-            <option value="20">20 miles</option>
-          </select>
-        </label>
-        <button type="button" id="jdMarkBtn">+ Add a landmark</button>
-        <span class="jd-hint" id="jdHint"></span>
-      </div>
-      <div class="jd-mapwrap" id="jdMapWrap">
-        <svg id="jdMap" class="jd-map" viewBox="0 0 880 520" preserveAspectRatio="xMidYMid meet"></svg>
-        <div class="jd-bubble" id="jdBubble" hidden=""></div>
-      </div>
-      <div class="jd-near" id="jdNearList"></div>
-      <div class="co-wrap"><table class="co-table slim" id="jdTable"></table></div>
+      <div class="jd-group" id="jdGroups"></div>
       <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><p class="info-note" hidden="" data-help-folded="1">
-        Type a site address against a job and press <b>Set pin</b>, then click the map where the
-        lot is — or paste the coordinates Google Maps gives you on a right click. The pin is only
-        for seeing which houses sit near each other; <b>Directions</b> works off the typed address
-        and needs no pin at all.
+        Every job with an address is filed under its town, so the houses in the same place sit
+        together — which run of work a crew can do in one trip is the question a map was being
+        asked, and the address answers it without one. The address itself is typed in the
+        <b>New job</b> form when the house first goes on the board, or afterwards from the
+        <b>Job list</b> on the Schedule tab — press the pencil beside a job and a box for it
+        sits next to the name. Down in the table each house shows a
+        <b>Directions</b> link under its name — that hands the address straight to Google Maps,
+        and hovering it shows the address itself.
       </p>
     </div>
     <button type="button" class="help-dots" title="What this is for" aria-label="What this is for" aria-expanded="false">•••</button><div class="co-note" id="coNote" hidden="" data-help-folded="1"></div>
@@ -2039,6 +2060,8 @@
   </div>
 
   <div id="paneSharing" hidden="">
+    <p class="build-stamp">Version <b>2026-10-15 e</b> — if a fix looks missing, check this first,
+      then reload with Ctrl+Shift+R.</p>
     <div class="card" id="sharingConnected">
       <h2>Sharing Is On</h2>
       <p class="connected-line"><span class="sync-dot dot-ok"></span> This tracker is connected to your shared schedule. Everyone using it sees the same thing.</p>
@@ -4995,6 +5018,12 @@ create policy "app access" on critical_path
       CLOSE_OUTS[newKey] = rec;
     }
 
+    // the site address, which until now stayed behind under the old name
+    if(JOB_PLACES[oldKey]){
+      const place = JOB_PLACES[oldKey];
+      if(newKey !== oldKey){ delete JOB_PLACES[oldKey]; JOB_PLACES[newKey] = place; }
+    }
+
     // the days this job was first seen on each board
     if(JOB_SEEN[oldKey]){
       JOB_SEEN[newKey] = JOB_SEEN[oldKey];
@@ -5029,8 +5058,11 @@ create policy "app access" on critical_path
         + (new Set(cells.map(c => c.pid)).size === 1 ? '' : 's')
         + ' — all of them change, and anything typed after the name stays as it is.'
       : 'Not on the board at the moment, so this only changes the list.';
+    const addr = ((JOB_PLACES && JOB_PLACES[jobKey(name)]) || {}).addr || '';
     return `<div class="job-edit">
         <input id="jeName" value="${esc(name)}" placeholder="job name">
+        <input id="jeAddr" value="${esc(addr)}" placeholder="site address (optional)"
+          autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1">
         <select id="jeCl">
           <option value="">— no CL —</option>
           ${ajLeaders().map(l => `<option value="${esc(l.tag)}"${l.tag === cl ? ' selected' : ''}>`
@@ -5111,8 +5143,17 @@ create policy "app access" on critical_path
       const nameEl = document.getElementById('jeName');
       const clEl = document.getElementById('jeCl');
       if(!nameEl || !clEl) return;
+      // Saved first, under the name the job still has. If the name is changing too, the
+      // rename carries the address across; if it is not, jobRename answers "nothing to
+      // change" and this would otherwise have been thrown away with it.
+      const addrEl = document.getElementById('jeAddr');
+      const addrWas = ((JOB_PLACES[jobKey(JOB_EDITING)] || {}).addr) || '';
+      const addrNow = addrEl ? addrEl.value.trim() : addrWas;
+      const addrMoved = addrNow !== addrWas;
+      if(addrMoved) jdSet(jobKey(JOB_EDITING), { addr: addrNow });
+
       const res = jobRename(JOB_EDITING, nameEl.value, clEl.value);
-      if(!res.ok){
+      if(!res.ok && !addrMoved){
         const row = document.querySelector('.job-edit');
         let warn = row && row.querySelector('.je-warn');
         if(row && !warn){
@@ -5135,9 +5176,11 @@ create policy "app access" on critical_path
       jcSyncBadge(); updateHistoryUI();
       const el = document.getElementById('saveStatus');
       if(el){
-        el.textContent = res.cells
-          ? `Renamed to ${res.name} — ${res.cells} cell${res.cells === 1 ? '' : 's'} updated`
-          : `Renamed to ${res.name}`;
+        el.textContent = !res.ok
+          ? (addrNow ? 'Address saved' : 'Address cleared')
+          : res.cells
+            ? `Renamed to ${res.name} — ${res.cells} cell${res.cells === 1 ? '' : 's'} updated`
+            : `Renamed to ${res.name}`;
         el.classList.remove('dirty');
         setTimeout(updateSaveStatus, 3000);
       }
@@ -5145,7 +5188,7 @@ create policy "app access" on critical_path
   });
 
   document.getElementById('ajJobManage').addEventListener('keydown', (e) => {
-    if(e.target.id === 'jeName'){
+    if(e.target.id === 'jeName' || e.target.id === 'jeAddr'){
       if(e.key === 'Enter'){ e.preventDefault();
         const b = document.getElementById('jeSave'); if(b) b.click(); return; }
       if(e.key === 'Escape'){ JOB_EDITING = ''; ajRenderJobList(); return; }
@@ -5314,7 +5357,7 @@ create policy "app access" on critical_path
   });
 
   document.getElementById('ajPartner').addEventListener('change', () => { ajFillDays(); ajUpdatePreview(); });
-  ['ajJob', 'ajLeader', 'ajNote'].forEach(id => {
+  ['ajJob', 'ajLeader', 'ajNote', 'ajAddr'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => ajUpdatePreview());
     document.getElementById(id).addEventListener('change', () => ajUpdatePreview());
   });
@@ -5362,8 +5405,15 @@ create policy "app access" on critical_path
     riRenderAll();
     updateSendButtons();
 
+    // The address belongs to the house, not to the cell, so it goes to the job's own
+    // record rather than onto the board. Blank is left blank — it is not a correction.
+    const addrBox = document.getElementById('ajAddr');
+    const addr = addrBox ? addrBox.value.trim() : '';
+    if(addr) jdSet(jobKey(job), { addr: addr });
+
     document.getElementById('ajJob').value = '';
     document.getElementById('ajNote').value = '';
+    if(addrBox) addrBox.value = '';
     const d = day.date ? new Date(day.date) : null;
     ajUpdatePreview(`Added to ${p.name} — ${week.label}, ${day.day}`
       + (d ? ` ${d.getMonth()+1}/${d.getDate()}` : '') + '.', false);
@@ -6658,6 +6708,8 @@ create policy "app access" on critical_path
     document.getElementById('ajJob').removeAttribute('value');
     document.getElementById('ajNote').value = '';
     document.getElementById('ajNote').removeAttribute('value');
+    document.getElementById('ajAddr').value = '';
+    document.getElementById('ajAddr').removeAttribute('value');
     document.getElementById('ajLeader').value = '';
     document.getElementById('ajLeader').removeAttribute('value');
     document.getElementById('jvSend').hidden = true;
@@ -10080,6 +10132,18 @@ create policy "app access" on critical_path
     if(csv) csv.textContent = coClPick ? `⤓ Download as CSV (${coClPick} only)` : '⤓ Download as CSV';
   }
 
+  // The address, as the job's own record holds it. One line of markup, used by both
+  // tables, so the open and the closed ones can never drift apart.
+  function coAddrCell(key){
+    const a = ((JOB_PLACES && JOB_PLACES[key]) || {}).addr || '';
+    if(!a) return '';                       // no address, nothing under the name
+    // The address rides along as the hover, so it can be checked without being printed
+    // on every row of the table.
+    return `<a class="co-dir" target="_blank" rel="noopener" title="${esc(a)}"
+          href="https://www.google.com/maps/dir/?api=1&amp;destination=${encodeURIComponent(a)}"
+          >Directions \u2197</a>`;
+  }
+
   function coRenderOpen(list){
     const t = document.getElementById('coTable');
     if(!t) return;
@@ -10097,7 +10161,8 @@ create policy "app access" on critical_path
       return;
     }
     t.innerHTML = head + '<tbody>' + rows.map(j => `<tr>
-        <td class="job">${esc(j.label)}${j.off ? '<span class="co-off">off the dropdowns</span>' : ''}</td>
+        <td class="job">${esc(j.label)}${j.off ? '<span class="co-off">off the dropdowns</span>' : ''}
+          ${coAddrCell(j.key)}</td>
         <td class="cl">${esc(j.cl || '—')}</td>
         ${coStartCell(j)}
         <td>${coDaysCell(j.row, false)}</td>
@@ -10124,7 +10189,8 @@ create policy "app access" on critical_path
       return;
     }
     t.innerHTML = head + '<tbody>' + rows.map(j => `<tr class="done">
-        <td class="job">${esc(j.label)}${j.off ? '<span class="co-off">off the dropdowns</span>' : ''}</td>
+        <td class="job">${esc(j.label)}${j.off ? '<span class="co-off">off the dropdowns</span>' : ''}
+          ${coAddrCell(j.key)}</td>
         <td class="cl">${esc(j.cl || '—')}</td>
         ${coStartCell(j)}
         <td><input type="date" data-co-closed="${esc(j.key)}" value="${esc(j.row.closed)}"></td>
@@ -10232,16 +10298,18 @@ create policy "app access" on critical_path
   // address lookup to fail on a site network and no account to expire. Directions are a
   // plain maps link, which resolves the typed address by itself.
   let JD_ARMED = null;        // the job (or '#mark') waiting for a click on the map
-  let JD_OPEN = null;         // the pin whose bubble is showing
 
   function jdNum(v){ const n = Number(v); return isFinite(n) ? n : null; }
 
   function jdJobs(){
     return coJobs().map(j => {
-      const k = jobKey(j.label);
+      // The same key the Active jobs table uses. They were worked out separately and
+      // agreed in every ordinary case, which is the worst way for two things to agree.
+      const k = j.key;
       const p = (JOB_PLACES && JOB_PLACES[k]) || {};
       return { key: k, label: j.label, cl: j.cl || '', addr: p.addr || '',
                lat: jdNum(p.lat), lon: jdNum(p.lon),
+               approx: !!p.approx, found: p.found || '',
                closed: !!(j.row && j.row.closed) };
     });
   }
@@ -10266,134 +10334,76 @@ create policy "app access" on critical_path
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
   }
 
-  // The window the map shows: everything placed, with air around it. Before anything is
-  // placed it opens on the country around Asheville, and the first pin takes over.
-  function jdBounds(pts){
-    if(!pts.length) return { la0: 35.25, la1: 35.92, lo0: -82.98, lo1: -82.18 };
-    let la0 = 90, la1 = -90, lo0 = 180, lo1 = -180;
-    pts.forEach(p => {
-      la0 = Math.min(la0, p.lat); la1 = Math.max(la1, p.lat);
-      lo0 = Math.min(lo0, p.lon); lo1 = Math.max(lo1, p.lon);
-    });
-    const padLa = Math.max((la1 - la0) * 0.2, 0.03);
-    const padLo = Math.max((lo1 - lo0) * 0.2, 0.04);
-    return { la0: la0 - padLa, la1: la1 + padLa, lo0: lo0 - padLo, lo1: lo1 + padLo };
+  // Pull the town and the ZIP out of an address typed by a person, not by a form. The
+  // ZIP is the reliable half — five digits are five digits — so a town that cannot be
+  // read still files itself correctly as long as the ZIP is there.
+  const JD_STATE = /[,\s]+(?:N\.?\s*C\.?|North Carolina|S\.?\s*C\.?|South Carolina|TN|Tennessee|GA|Georgia|VA|Virginia)\s*$/i;
+
+  function jdWhere(addr){
+    const t = String(addr || '').trim();
+    if(!t) return { town: '', zip: '' };
+    const zm = t.match(/\b(\d{5})(?:-\d{4})?\b\s*$/) || t.match(/\b(\d{5})(?:-\d{4})?\b/);
+    const zip = zm ? zm[1] : '';
+    // Take off the ZIP, then the state, then whatever commas that left dangling.
+    let rest = (zm ? t.replace(zm[0], ' ') : t).replace(/[\s,]+$/, '').trim();
+    rest = rest.replace(JD_STATE, '').replace(/[\s,]+$/, '').trim();
+    const parts = rest.split(',').map(x => x.trim()).filter(Boolean);
+    // With commas the town is the last thing left. Without them there is nothing to go
+    // on that is not a guess, so the ZIP carries it alone.
+    const town = parts.length > 1 ? parts[parts.length - 1] : '';
+    return { town: town, zip: zip };
   }
 
-  const JD_W = 880, JD_H = 520, JD_PAD = 34;
-
-  // Longitude squeezed by the cosine of the latitude, so a mile across looks like a mile
-  // up and the shape of a cluster is honest.
-  function jdProj(b){
-    const midLa = (b.la0 + b.la1) / 2;
-    const kx = Math.cos(midLa * Math.PI / 180);
-    const wDeg = (b.lo1 - b.lo0) * kx, hDeg = (b.la1 - b.la0);
-    const sc = Math.min((JD_W - JD_PAD * 2) / (wDeg || 1e-6), (JD_H - JD_PAD * 2) / (hDeg || 1e-6));
-    const cx = (JD_W) / 2, cy = (JD_H) / 2;
-    const midLo = (b.lo0 + b.lo1) / 2;
-    return {
-      x: lon => cx + (lon - midLo) * kx * sc,
-      y: lat => cy - (lat - midLa) * sc,
-      lon: x => midLo + (x - cx) / (kx * sc),
-      lat: y => midLa - (y - cy) / sc,
-      milesPerUnit: 69.172 / sc            // a degree of latitude, in miles, per unit
-    };
+  function jdTitle(t){
+    return String(t || '').toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
   }
 
-  function jdRenderMap(){
-    const svg = document.getElementById('jdMap');
-    if(!svg) return;
-    const jobs = jdJobs().filter(j => j.lat != null && j.lon != null);
-    const marks = (MAP_MARKS || []).filter(m => jdNum(m.lat) != null && jdNum(m.lon) != null);
-    const pts = jobs.concat(marks.map(m => ({ lat: jdNum(m.lat), lon: jdNum(m.lon) })));
-    const b = jdBounds(pts);
-    const P = jdProj(b);
-    svg.__proj = P;
-
-    const bits = [`<rect x="0" y="0" width="${JD_W}" height="${JD_H}" fill="var(--surface-1)"/>`];
-
-    // a grid of whole tenths of a degree, labelled where it meets the edge
-    const step = (b.la1 - b.la0) > 0.6 ? 0.2 : (b.la1 - b.la0) > 0.25 ? 0.1 : 0.05;
-    const r2 = v => Math.round(v * 1000) / 1000;
-    for(let la = Math.ceil(b.la0 / step) * step; la <= b.la1; la += step){
-      const y = P.y(la);
-      bits.push(`<line x1="0" y1="${y.toFixed(1)}" x2="${JD_W}" y2="${y.toFixed(1)}" `
-        + `stroke="var(--border)" stroke-width="1" opacity=".55"/>`);
-      bits.push(`<text x="4" y="${(y - 3).toFixed(1)}" font-size="9" fill="var(--text-muted)" `
-        + `opacity=".7">${r2(la)}\u00b0N</text>`);
-    }
-    for(let lo = Math.ceil(b.lo0 / step) * step; lo <= b.lo1; lo += step){
-      const x = P.x(lo);
-      bits.push(`<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${JD_H}" `
-        + `stroke="var(--border)" stroke-width="1" opacity=".55"/>`);
-      bits.push(`<text x="${(x + 3).toFixed(1)}" y="${JD_H - 5}" font-size="9" `
-        + `fill="var(--text-muted)" opacity=".7">${r2(Math.abs(lo))}\u00b0W</text>`);
-    }
-
-    // a scale bar, in whole miles
-    const want = 120;                                   // about this many units long
-    let miles = want * P.milesPerUnit;
-    const nice = [1, 2, 5, 10, 20, 25, 50, 100];
-    miles = nice.reduce((a, c) => Math.abs(c - miles) < Math.abs(a - miles) ? c : a, nice[0]);
-    const barW = miles / P.milesPerUnit;
-    const bx = JD_W - barW - 18, by = JD_H - 22;
-    bits.push(`<line x1="${bx.toFixed(1)}" y1="${by}" x2="${(bx + barW).toFixed(1)}" y2="${by}" `
-      + `stroke="var(--text-secondary)" stroke-width="2"/>`);
-    bits.push(`<line x1="${bx.toFixed(1)}" y1="${by - 4}" x2="${bx.toFixed(1)}" y2="${by + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`);
-    bits.push(`<line x1="${(bx + barW).toFixed(1)}" y1="${by - 4}" x2="${(bx + barW).toFixed(1)}" y2="${by + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`);
-    bits.push(`<text x="${(bx + barW / 2).toFixed(1)}" y="${by - 7}" font-size="10" `
-      + `text-anchor="middle" fill="var(--text-secondary)">${miles} mile${miles === 1 ? '' : 's'}</text>`);
-
-    // your landmarks, behind the jobs
-    marks.forEach((m, i) => {
-      const x = P.x(jdNum(m.lon)), y = P.y(jdNum(m.lat));
-      bits.push(`<g class="jd-mark" data-jdmark="${i}">`
-        + `<path d="M ${x.toFixed(1)} ${(y - 6).toFixed(1)} l 6 6 l -6 6 l -6 -6 z" `
-        + `fill="var(--text-muted)" opacity=".8"/>`
-        + `<text x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="10.5" `
-        + `fill="var(--text-muted)">${esc(m.name || 'landmark')}</text></g>`);
-    });
-
-    // the houses
-    jobs.forEach(j => {
-      const x = P.x(j.lon), y = P.y(j.lat);
-      const fill = j.closed ? 'var(--text-muted)' : 'var(--status-good)';
-      bits.push(`<g class="jd-pin" data-jdkey="${esc(j.key)}" style="cursor:pointer">`
-        + `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="${fill}" `
-        + `stroke="var(--surface-1)" stroke-width="2"><title>${esc(j.label
-            + (j.addr ? ' \u2014 ' + j.addr : ''))}</title></circle>`
-        + `<text x="${(x + 10).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" `
-        + `font-weight="600" fill="var(--text-primary)">${esc(j.label)}</text></g>`);
-    });
-
-    if(!jobs.length && !marks.length){
-      bits.push(`<text x="${JD_W / 2}" y="${JD_H / 2}" font-size="13" text-anchor="middle" `
-        + `fill="var(--text-muted)">No pins yet \u2014 put an address against a job below, `
-        + `press Set pin, then click where the lot is.</text>`);
-    }
-    svg.innerHTML = bits.join('');
-  }
-
-  function jdRenderNear(){
-    const el = document.getElementById('jdNearList');
+  // Every job under the town on its address. This is what the map was for — which houses
+  // are in the same place — and the address says it without anybody's tile server.
+  function jdRenderGroups(){
+    const el = document.getElementById('jdGroups');
     if(!el) return;
-    const sel = document.getElementById('jdNear');
-    const within = Number(sel && sel.value) || 5;
-    const jobs = jdJobs().filter(j => j.lat != null && j.lon != null && !j.closed);
-    const pairs = [];
-    for(let i = 0; i < jobs.length; i++)
-      for(let k = i + 1; k < jobs.length; k++){
-        const d = jdMiles(jobs[i], jobs[k]);
-        if(d <= within) pairs.push({ a: jobs[i], b: jobs[k], d: d });
-      }
-    pairs.sort((x, y) => x.d - y.d);
-    el.innerHTML = !jobs.length
-      ? '<span class="jd-none">Nothing pinned yet.</span>'
-      : (pairs.length
-          ? `<b>Within ${within} miles:</b> ` + pairs.map(p =>
-              `<span class="pair">${esc(p.a.label)} \u2194 ${esc(p.b.label)} `
-              + `<span class="mi">${p.d < 1 ? (Math.round(p.d * 10) / 10) : Math.round(p.d)} mi</span></span>`).join('')
-          : `<span class="jd-none">No two pinned houses are within ${within} miles of each other.</span>`);
+    const jobs = jdJobs();
+    const bins = new Map();
+    let blank = 0, vague = [];
+    jobs.forEach(j => {
+      if(!j.addr){ blank++; return; }
+      const w = jdWhere(j.addr);
+      // The town is what groups them. A ZIP on its own still makes a group; an address
+      // with neither is not wrong, it just cannot be filed, and it says so below.
+      if(!w.town && !w.zip){ vague.push(j); return; }
+      const key = w.town ? w.town.toLowerCase() : 'zip:' + w.zip;
+      if(!bins.has(key)) bins.set(key, { town: jdTitle(w.town), zips: new Set(), jobs: [] });
+      const g = bins.get(key);
+      if(w.zip) g.zips.add(w.zip);
+      g.jobs.push(j);
+    });
+    const groups = [...bins.values()].sort((a, b) => (b.jobs.length - a.jobs.length)
+      || (a.town || [...a.zips][0] || '').localeCompare(b.town || [...b.zips][0] || ''));
+
+    if(!groups.length && !vague.length && !blank){
+      el.innerHTML = '<span class="jd-none">No jobs on the board yet.</span>';
+      return;
+    }
+    const list = arr => `<ul>${arr.slice().sort((a, b) => a.label.localeCompare(b.label)).map(j =>
+          `<li${j.closed ? ' class="shut"' : ''}>${esc(j.label)}${j.cl ? ' \u00b7 ' + esc(j.cl) : ''}`
+          + `${j.closed ? ' \u00b7 closed out' : ''}</li>`).join('')}</ul>`;
+    const card = g => {
+      const zips = [...g.zips].sort().join(', ');
+      return `<div class="jd-town">
+        <h4><span>${esc(g.town || ('ZIP ' + zips))}</span>`
+      + (g.town && zips ? `<span class="zip">${esc(zips)}</span>` : '')
+      + `<span class="n">${g.jobs.length}</span></h4>${list(g.jobs)}</div>`;
+    };
+    // The houses with no address at all are a number, not a list — naming two dozen of
+    // them would bury the handful of towns this panel exists to show. The ones whose
+    // address has no town in it are named, because those are the ones to go and fix.
+    el.innerHTML = (groups.length ? groups.map(card).join('')
+                                  : '<span class="jd-none">No addresses typed in yet.</span>')
+      + (vague.length ? `<div class="jd-town vague"><h4><span>No town in the address</span>`
+          + `<span class="n">${vague.length}</span></h4>${list(vague)}</div>` : '')
+      + (blank ? `<p class="jd-nowhere">${blank} job${blank === 1 ? '' : 's'} with no address yet `
+           + `\u2014 type one under the job\u2019s name below and it files itself.</p>` : '');
   }
 
   function jdRenderSum(){
@@ -10402,8 +10412,12 @@ create policy "app access" on critical_path
     const jobs = jdJobs();
     const pinned = jobs.filter(j => j.lat != null && j.lon != null).length;
     const addr = jobs.filter(j => j.addr).length;
+    // Counted the same way the cards are grouped, so the number and the panel agree.
+    const towns = new Set(jobs.filter(j => j.addr)
+      .map(j => { const w = jdWhere(j.addr); return w.town.toLowerCase() || (w.zip && 'zip:' + w.zip); })
+      .filter(Boolean));
     el.textContent = `${jobs.length} job${jobs.length === 1 ? '' : 's'} \u00b7 ${addr} with an address `
-      + `\u00b7 ${pinned} pinned`;
+      + `\u00b7 ${towns.size} town${towns.size === 1 ? '' : 's'}`;
   }
 
   // Built once and then left alone — a table that rebuilds under you is a table you
@@ -10418,10 +10432,14 @@ create policy "app access" on critical_path
           <td>${esc(j.label)}</td>
           <td>${esc(j.cl)}</td>
           <td><input class="addr" type="text" value="${esc(j.addr)}" placeholder="site address"
-               autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1"></td>
+               autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1">
+            <span class="jd-found${j.lat != null ? (j.approx ? ' approx' : '') : ''}">${
+              j.lat == null ? '' : esc(j.approx
+                ? '\u2713 found the road, not the number \u2014 pin is approximate'
+                : '\u2713 ' + String(j.found || 'pinned').split(',').slice(0, 3).join(','))}</span></td>
           <td><input class="coord" type="text" value="${j.lat != null ? (Math.round(j.lat * 1e5) / 1e5) + ', ' + (Math.round(j.lon * 1e5) / 1e5) : ''}"
                placeholder="lat, lon" autocomplete="off" data-lpignore="true" data-1p-ignore="" data-nofill="1"></td>
-          <td class="set"><button type="button" data-jdpin="${esc(j.key)}">Set pin</button>
+          <td class="set"><button type="button" data-jdpin="${esc(j.key)}" title="For an address the lookup cannot find">Place by hand</button>
             <button type="button" data-jdclear="${esc(j.key)}">Clear</button></td>
         </tr>`).join('')
         : '<tr><td colspan="5" class="jd-none">No jobs on the board yet.</td></tr>')
@@ -10430,17 +10448,14 @@ create policy "app access" on critical_path
 
   function jdRender(){
     jdRenderSum();
-    jdRenderMap();
-    jdRenderNear();
-    jdRenderTable();
+    jdRenderGroups();
   }
 
-  // Everything but the table, for after a pin moves — so an address being typed in the
-  // table keeps the cursor it has.
+  // The same thing now the map and its table are gone. Kept because a dozen places call
+  // it, and because the next map — if there is one — will want the distinction back.
   function jdRefresh(){
     jdRenderSum();
-    jdRenderMap();
-    jdRenderNear();
+    jdRenderGroups();
   }
 
   function jdHint(msg, armed){
@@ -10457,68 +10472,196 @@ create policy "app access" on critical_path
     jdHint(key ? `Click the map where ${label} is.` : '', !!key);
   }
 
-  function jdBubbleFor(key){
-    const wrap = document.getElementById('jdMapWrap');
-    const el = document.getElementById('jdBubble');
-    const svg = document.getElementById('jdMap');
-    if(!wrap || !el || !svg || !svg.__proj) return;
-    const j = jdJobs().find(x => x.key === key);
-    if(!j || j.lat == null){ el.hidden = true; JD_OPEN = null; return; }
-    const box = svg.getBoundingClientRect();
-    const sx = box.width / JD_W, sy = box.height / JD_H;
-    const x = svg.__proj.x(j.lon) * sx, y = svg.__proj.y(j.lat) * sy;
-    const dest = encodeURIComponent(j.addr || `${j.lat},${j.lon}`);
-    el.innerHTML = `<b>${esc(j.label)}</b>`
-      + (j.cl ? `<span class="who">${esc(j.cl)}</span>` : '')
-      + `<div class="addr">${j.addr ? esc(j.addr) : '<i>no address typed</i>'}</div>`
-      + `<div class="row">`
-      + `<a class="primary" target="_blank" rel="noopener" `
-      + `href="https://www.google.com/maps/dir/?api=1&destination=${dest}">Directions</a>`
-      + `<button type="button" data-jdclose="1">Close</button></div>`;
-    el.hidden = false;
-    // kept inside the map, whichever corner the pin is in
-    const w = el.offsetWidth, h = el.offsetHeight;
-    el.style.left = Math.max(4, Math.min(box.width - w - 4, x + 12)) + 'px';
-    el.style.top = Math.max(4, Math.min(box.height - h - 4, y - h / 2)) + 'px';
-    JD_OPEN = key;
+  // ---------- the map ----------
+  // Fetched when the tab is first opened, not at startup, so the tracker still opens
+  // instantly and still works with no internet until you ask for the map.
+  const JD_LEAFLET = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet';
+  let jdLeafletAsked = null;
+  function jdLeaflet(){
+    if(window.L) return Promise.resolve(window.L);
+    if(jdLeafletAsked) return jdLeafletAsked;
+    jdLeafletAsked = new Promise((done, fail) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet'; css.href = JD_LEAFLET + '.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = JD_LEAFLET + '.js';
+      js.onload = () => window.L ? done(window.L) : fail(new Error('no map'));
+      js.onerror = () => fail(new Error('no map'));
+      document.head.appendChild(js);
+    });
+    return jdLeafletAsked;
+  }
+
+  let jdMapObj = null, jdPins = [];
+
+  // Turned off deliberately, not broken. OpenStreetMap's tile servers are run by
+  // volunteers for their own project and their usage policy does not allow an app like
+  // this one to draw from them — they answered with "Access blocked", which is a fair
+  // answer to a question we should not have been asking. A real map needs a provider
+  // that sells map service, and that is a decision to make rather than assume.
+  const JD_MAP_ON = false;
+
+  async function jdRenderMap(){
+    const host = document.getElementById('jdMap');
+    if(!host) return;
+    if(!JD_MAP_ON){
+      host.innerHTML = '<div class="jd-map-off"><b>No map at the moment.</b><br>'
+        + 'The free map service turned us away \u2014 their servers are run by volunteers for '
+        + 'their own project, not for other people\u2019s software. The addresses below and the '
+        + '<b>Directions</b> button work without it.</div>';
+      return;
+    }
+    let L;
+    try { L = await jdLeaflet(); }
+    catch(_){
+      host.innerHTML = '<div class="jd-map-off">The map could not be fetched \u2014 it needs the '
+        + 'internet. Everything else on this tab works without it.</div>';
+      return;
+    }
+    if(!jdMapObj){
+      jdMapObj = L.map(host, { scrollWheelZoom: false })
+                  .setView([35.595, -82.551], 10);          // the country around Asheville
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { maxZoom: 19, attribution: '\u00a9 OpenStreetMap' }).addTo(jdMapObj);
+      // Scrolling the page past a map should scroll the page, not zoom the map.
+      jdMapObj.on('click', () => { if(JD_ARMED) return; });
+    }
+    jdPins.forEach(m => jdMapObj.removeLayer(m));
+    jdPins = [];
+
+    const jobs = jdJobs().filter(j => j.lat != null && j.lon != null);
+    jobs.forEach(j => {
+      const colour = j.closed ? '#7b8089' : (j.approx ? '#d99e18' : '#0ca30c');
+      const m = L.circleMarker([j.lat, j.lon], {
+        radius: 8, weight: 2, color: '#ffffff', fillColor: colour, fillOpacity: 1
+      }).addTo(jdMapObj);
+      const dest = encodeURIComponent(j.addr || (j.lat + ',' + j.lon));
+      m.bindTooltip(j.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'jd-tip' });
+      m.bindPopup('<b>' + esc(j.label) + '</b>'
+        + (j.cl ? '<span class="who">' + esc(j.cl) + '</span>' : '')
+        + '<div class="addr">' + (j.addr ? esc(j.addr) : '<i>no address</i>')
+        + (j.approx ? '<br><i>pin is on the road, not the lot</i>' : '') + '</div>'
+        + '<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1'
+        + '&destination=' + dest + '">Directions</a>');
+      jdPins.push(m);
+    });
+
+    (MAP_MARKS || []).forEach(k => {
+      const la = jdNum(k.lat), lo = jdNum(k.lon);
+      if(la == null || lo == null) return;
+      const m = L.circleMarker([la, lo], { radius: 5, weight: 1, color: '#ffffff',
+        fillColor: '#8a8f98', fillOpacity: 1 }).addTo(jdMapObj);
+      m.bindTooltip(k.name || 'landmark', { permanent: true, direction: 'right', offset: [6, 0] });
+      jdPins.push(m);
+    });
+
+    if(jobs.length){
+      const b = L.latLngBounds(jobs.map(j => [j.lat, j.lon]));
+      jdMapObj.fitBounds(b.pad(0.25), { maxZoom: 15 });
+    }
+    setTimeout(() => { try { jdMapObj.invalidateSize(); } catch(_){} }, 60);
+  }
+
+  // ---------- turning an address into a pin ----------
+  // Only western North Carolina is believable. The lookup will answer with the middle of
+  // the country when it cannot do better, and a confident wrong answer is the one thing
+  // worth guarding against.
+  const JD_BOX = { la0: 34.8, la1: 36.7, lo0: -84.6, lo1: -80.6 };
+  const JD_VAGUE = /^(administrative|boundary|country|state|county|postcode|political)$/i;
+
+  function jdBelievable(r){
+    if(!r) return false;
+    const la = Number(r.lat), lo = Number(r.lon);
+    if(!isFinite(la) || !isFinite(lo)) return false;
+    if(la < JD_BOX.la0 || la > JD_BOX.la1 || lo < JD_BOX.lo0 || lo > JD_BOX.lo1) return false;
+    if(JD_VAGUE.test(String(r.type || '')) || JD_VAGUE.test(String(r.class || ''))) return false;
+    return true;
+  }
+
+  async function jdAsk(q){
+    const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='
+            + encodeURIComponent(q);
+    const res = await fetch(u);
+    if(!res.ok) return null;
+    const j = await res.json();
+    return (j && j[0]) ? j[0] : null;
+  }
+
+  // The address exactly as typed first, because that is what worked. If the house number
+  // is not on the map, the road on its own, and the pin says so.
+  async function jdLookup(addr){
+    const plain = String(addr || '').trim();
+    if(!plain) return { how: 'none' };
+    // Same volunteer project, same policy. Off until there is one we are allowed to use.
+    if(!JD_MAP_ON) return { how: 'nolookup' };
+    try {
+      const hit = await jdAsk(plain);
+      if(jdBelievable(hit)) return { how: 'exact', lat: +hit.lat, lon: +hit.lon,
+                                     what: hit.display_name || '' };
+      const road = plain.replace(/^\s*[0-9]+[A-Za-z]?\s+/, '');
+      if(road && road !== plain){
+        await new Promise(r => setTimeout(r, 1100));      // one question a second
+        const near = await jdAsk(road);
+        if(jdBelievable(near)) return { how: 'road', lat: +near.lat, lon: +near.lon,
+                                        what: near.display_name || '' };
+      }
+      return { how: 'none' };
+    } catch(_){ return { how: 'offline' }; }
+  }
+
+  function jdSayFound(key, r){
+    const row = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] .jd-found`);
+    if(!row) return;
+    row.className = 'jd-found' + (r.how === 'road' ? ' approx' : r.how === 'exact' ? '' : ' none');
+    row.textContent = r.how === 'exact' ? ('\u2713 ' + String(r.what).split(',').slice(0, 3).join(','))
+      : r.how === 'road' ? '\u2713 found the road, not the number \u2014 pin is approximate'
+      : r.how === 'offline' ? 'could not reach the lookup \u2014 try again, or place it by hand'
+      : r.how === 'nolookup' ? 'saved \u2014 Directions works off this address'
+      : 'not found \u2014 place this one by hand';
+  }
+
+  async function jdPlaceFromAddress(key, addr){
+    const row = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] .jd-found`);
+    if(row){ row.className = 'jd-found'; row.textContent = 'looking it up\u2026'; }
+    const r = await jdLookup(addr);
+    if(r.how === 'exact' || r.how === 'road'){
+      jdSet(key, { lat: r.lat, lon: r.lon, approx: r.how === 'road', found: r.what });
+      // The table is not rebuilt while somebody may be typing in it, so this one box is
+      // filled in by hand.
+      const box = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] input.coord`);
+      if(box) box.value = (Math.round(r.lat * 1e5) / 1e5) + ', ' + (Math.round(r.lon * 1e5) / 1e5);
+      jdRefresh();
+    }
+    jdSayFound(key, r);
   }
 
   (function wireJd(){
-    const svg = document.getElementById('jdMap');
-    const table = document.getElementById('jdTable');
-    if(!svg || !table) return;
-
-    svg.addEventListener('click', e => {
-      const box = svg.getBoundingClientRect();
-      const ux = (e.clientX - box.left) * (JD_W / box.width);
-      const uy = (e.clientY - box.top) * (JD_H / box.height);
-      if(JD_ARMED && svg.__proj){
-        const lat = Math.round(svg.__proj.lat(uy) * 1e5) / 1e5;
-        const lon = Math.round(svg.__proj.lon(ux) * 1e5) / 1e5;
-        if(JD_ARMED === '#mark'){
-          const name = (window.prompt('Name this landmark') || '').trim();
-          if(name){ MAP_MARKS.push({ name: name, lat: lat, lon: lon }); markDirty(); queueSave(PLACES_ROW); }
-        } else {
-          jdSet(JD_ARMED, { lat: lat, lon: lon });
-          const row = table.querySelector(`tr[data-jdrow="${CSS.escape(JD_ARMED)}"] input.coord`);
-          if(row) row.value = lat + ', ' + lon;
-        }
-        jdArm(null, '');
-        jdRefresh();
-        return;
-      }
-      const pin = e.target.closest('[data-jdkey]');
-      if(pin) jdBubbleFor(pin.getAttribute('data-jdkey'));
-      else { const b = document.getElementById('jdBubble'); if(b) b.hidden = true; JD_OPEN = null; }
-    });
-
-    const bubble = document.getElementById('jdBubble');
-    if(bubble) bubble.addEventListener('click', e => {
-      if(e.target.closest('[data-jdclose]')){ bubble.hidden = true; JD_OPEN = null; }
-    });
+    // Listening on the document rather than on the table. The table is rebuilt whenever
+    // this tab redraws, and a listener put on the old one goes with it — which is exactly
+    // what stopped an address being looked up at all.
+    const inJd = (e) => e.target && e.target.closest && e.target.closest('#jdTable');
+    const table = {
+      addEventListener: (kind, fn) => document.addEventListener(kind, (e) => {
+        if(inJd(e)) fn(e);
+      }),
+      querySelector: (sel) => document.querySelector('#jdTable ' + sel)
+    };
 
     const markBtn = document.getElementById('jdMarkBtn');
-    if(markBtn) markBtn.addEventListener('click', () => jdArm('#mark', 'the landmark'));
+    if(markBtn) markBtn.addEventListener('click', () => {
+      jdArm('#mark', 'the landmark');
+      if(!jdMapObj) return;
+      jdMapObj.once('click', ev => {
+        const name = (window.prompt('Name this landmark') || '').trim();
+        if(name){
+          MAP_MARKS.push({ name: name, lat: Math.round(ev.latlng.lat * 1e5) / 1e5,
+                           lon: Math.round(ev.latlng.lng * 1e5) / 1e5 });
+          markDirty(); queueSave(PLACES_ROW);
+        }
+        jdArm(null, ''); jdRefresh();
+      });
+    });
 
     const near = document.getElementById('jdNear');
     if(near) near.addEventListener('change', jdRenderNear);
@@ -10527,20 +10670,48 @@ create policy "app access" on critical_path
       const pin = e.target.closest('[data-jdpin]');
       if(pin){
         const key = pin.getAttribute('data-jdpin');
-        const row = table.querySelector(`tr[data-jdrow="${CSS.escape(key)}"] td`);
+        const row = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] td`);
         jdArm(key, row ? row.textContent.trim() : 'this job');
         document.getElementById('jdMapWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if(jdMapObj) jdMapObj.once('click', ev => {
+          jdSet(key, { lat: Math.round(ev.latlng.lat * 1e5) / 1e5,
+                       lon: Math.round(ev.latlng.lng * 1e5) / 1e5, approx: false, found: 'placed by hand' });
+          const box = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] input.coord`);
+          if(box) box.value = (Math.round(ev.latlng.lat * 1e5) / 1e5) + ', ' + (Math.round(ev.latlng.lng * 1e5) / 1e5);
+          jdArm(null, ''); jdRefresh();
+          jdSayFound(key, { how: 'exact', what: 'placed by hand' });
+        });
         return;
       }
       const clr = e.target.closest('[data-jdclear]');
       if(clr){
         const key = clr.getAttribute('data-jdclear');
         jdSet(key, { lat: null, lon: null });
-        const inp = table.querySelector(`tr[data-jdrow="${CSS.escape(key)}"] input.coord`);
+        const inp = document.querySelector(`#jdTable tr[data-jdrow="${CSS.escape(key)}"] input.coord`);
         if(inp) inp.value = '';
-        if(JD_OPEN === key){ const b = document.getElementById('jdBubble'); if(b) b.hidden = true; JD_OPEN = null; }
         jdRefresh();
       }
+    });
+
+    // Leaving an address box is what asks for the pin. Not on every keystroke — that
+    // would be a question to somebody else's server per letter typed.
+    table.addEventListener('change', e => {
+      if(!e.target.classList || !e.target.classList.contains('addr')) return;
+      const row = e.target.closest('[data-jdrow]');
+      if(!row) return;
+      const key = row.getAttribute('data-jdrow');
+      const addr = e.target.value.trim();
+      jdSet(key, { addr: addr });
+      if(!addr){
+        jdSet(key, { lat: null, lon: null, approx: false, found: '' });
+        const box = row.querySelector('input.coord');
+        if(box) box.value = '';
+        const say = row.querySelector('.jd-found');
+        if(say){ say.className = 'jd-found'; say.textContent = ''; }
+        jdRefresh();
+        return;
+      }
+      jdPlaceFromAddress(key, addr);
     });
 
     // Typing an address only stores it. The table is not rebuilt, so the cursor stays
@@ -10552,7 +10723,7 @@ create policy "app access" on critical_path
       if(e.target.classList.contains('addr')){
         jdSet(key, { addr: e.target.value.trim() });
         jdRenderSum();
-        return;
+        return;        // looked up when you leave the box, not on every keystroke
       }
       if(e.target.classList.contains('coord')){
         const m = String(e.target.value).match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map Check</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --line:#d9dde3; --text:#1b1f24; --muted:#5b6471;
+    --accent:#1b5e9e; --good:#0c7a3d; --bad:#a32828; --warn:#8a5a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15181c; --surface:#1e2228; --line:#333a43; --text:#e8ebef; --muted:#9aa4b1;
+           --accent:#6fb3ee; --good:#4dc07d; --bad:#ef7f7f; --warn:#e0ab4a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 64px;background:var(--bg);color:var(--text);
+       font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+        padding:16px;margin:0 0 14px}
+  label{display:block;font-weight:600;margin:0 0 6px}
+  input[type=text]{width:100%;padding:10px 12px;font-size:16px;
+       border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+  button.go{background:var(--accent);color:#fff;border:0;border-radius:8px;
+       padding:10px 18px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
+  .row{border-top:1px solid var(--line);padding:14px 0 10px}
+  .row:first-of-type{border-top:0}
+  .row h3{margin:0 0 2px;font-size:14.5px}
+  .row p{margin:0;color:var(--muted);font-size:13px}
+  .res{margin-top:8px;font:12.5px/1.5 ui-monospace,Consolas,monospace;
+       padding:8px 10px;border-radius:6px;background:var(--bg);border:1px solid var(--line);
+       white-space:pre-wrap;word-break:break-word}
+  .ok{color:var(--good);font-weight:700}
+  .no{color:var(--bad);font-weight:700}
+  .wait{color:var(--muted)}
+  #tilebox{margin-top:8px;display:flex;gap:10px;align-items:flex-start}
+  #tilebox img{width:128px;height:128px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+  #out{width:100%;min-height:120px;font:12.5px/1.5 ui-monospace,Consolas,monospace;
+       padding:10px;border:1px solid var(--line);border-radius:8px;
+       background:var(--bg);color:var(--text);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Map Check</h1>
+<p class="sub">Four questions, answered by your browser on your network. This tells me
+whether the tracker can look an address up and draw a real map, or whether something
+between you and the internet says no.</p>
+
+<div class="card">
+  <label for="addr">A real job site address</label>
+  <input id="addr" type="text" value="1 Page Ave, Asheville, NC 28801" autocomplete="off">
+  <button class="go" id="run">Run the check</button>
+</div>
+
+<div class="card" id="tests">
+  <div class="row">
+    <h3>1. Map tiles</h3>
+    <p>Can your browser fetch a piece of an actual map? If this fails, a real map is off
+       the table and the drawn one stays.</p>
+    <div id="tilebox"><img id="tile" alt=""><div class="res" id="r1">not run</div></div>
+  </div>
+  <div class="row">
+    <h3>2. The map library</h3>
+    <p>The code that draws a map. Blocked at a lot of company networks.</p>
+    <div class="res" id="r2">not run</div>
+  </div>
+  <div class="row">
+    <h3>3. Address lookup — US Census</h3>
+    <p>Free, run by the government, no account. First choice if it works.</p>
+    <div class="res" id="r3">not run</div>
+  </div>
+  <div class="row">
+    <h3>4. Address lookup — OpenStreetMap</h3>
+    <p>The fallback, and usually better on rural addresses.</p>
+    <div class="res" id="r4">not run</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 6px;font-size:15px">Send me this</h3>
+  <textarea id="out" readonly></textarea>
+  <button class="go" id="copy" style="margin-top:10px">Copy the results</button>
+</div>
+
+</div>
+
+<script>
+(function(){
+  const results = {};
+  const set = (id, key, cls, text) => {
+    const el = document.getElementById(id);
+    el.className = 'res';
+    el.innerHTML = '<span class="' + cls + '">' + (cls === 'ok' ? 'WORKS' : cls === 'no' ? 'BLOCKED' : '…') + '</span> ' + text;
+    results[key] = (cls === 'ok' ? 'works' : cls === 'no' ? 'blocked' : 'waiting') + ' — ' + text;
+    render();
+  };
+  const render = () => {
+    document.getElementById('out').value =
+      'Map check — ' + new Date().toLocaleString() + '\n' +
+      ['tiles','library','census','osm'].map(k => k + ': ' + (results[k] || 'not run')).join('\n');
+  };
+
+  // 1. a single map tile, straight from the tile server
+  function checkTile(){
+    set('r1','tiles','wait','asking…');
+    const img = document.getElementById('tile');
+    const done = (okay, why) => set('r1','tiles', okay ? 'ok' : 'no', why);
+    img.onload = () => done(img.naturalWidth > 10, img.naturalWidth > 10
+      ? 'a map tile came back and drew' : 'came back empty');
+    img.onerror = () => done(false, 'the tile server could not be reached');
+    img.src = 'https://tile.openstreetmap.org/9/139/203.png?cb=' + Date.now();
+  }
+
+  // 2. the drawing library
+  function checkLib(){
+    set('r2','library','wait','asking…');
+    const sc = document.createElement('script');
+    sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    sc.onload = () => set('r2','library', window.L ? 'ok' : 'no',
+      window.L ? 'the map library loaded' : 'loaded but did not start');
+    sc.onerror = () => set('r2','library','no','the library could not be fetched');
+    document.head.appendChild(sc);
+  }
+
+  // 3 & 4. address lookup
+  async function checkCensus(addr){
+    set('r3','census','wait','asking…');
+    try {
+      const u = 'https://geocoding.geo.census.gov/geocoder/locations/onelineaddress'
+              + '?address=' + encodeURIComponent(addr)
+              + '&benchmark=Public_AR_Current&format=json';
+      const res = await fetch(u);
+      const j = await res.json();
+      const m = j && j.result && j.result.addressMatches && j.result.addressMatches[0];
+      if(m && m.coordinates) set('r3','census','ok',
+        'found it at ' + (+m.coordinates.y).toFixed(5) + ', ' + (+m.coordinates.x).toFixed(5)
+        + '\n' + (m.matchedAddress || ''));
+      else set('r3','census','no','answered, but did not recognise that address');
+    } catch(e){ set('r3','census','no','could not be reached (' + (e && e.message ? e.message : 'blocked') + ')'); }
+  }
+
+  async function checkOsm(addr){
+    set('r4','osm','wait','asking…');
+    try {
+      const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q='
+              + encodeURIComponent(addr);
+      const res = await fetch(u);
+      const j = await res.json();
+      if(j && j[0]) set('r4','osm','ok',
+        'found it at ' + (+j[0].lat).toFixed(5) + ', ' + (+j[0].lon).toFixed(5)
+        + '\n' + (j[0].display_name || '').slice(0, 90));
+      else set('r4','osm','no','answered, but did not recognise that address');
+    } catch(e){ set('r4','osm','no','could not be reached (' + (e && e.message ? e.message : 'blocked') + ')'); }
+  }
+
+  document.getElementById('run').addEventListener('click', () => {
+    const addr = document.getElementById('addr').value.trim();
+    if(!addr) return;
+    checkTile();
+    checkLib();
+    checkCensus(addr);
+    checkOsm(addr);
+  });
+
+  document.getElementById('copy').addEventListener('click', () => {
+    const t = document.getElementById('out');
+    t.select();
+    try { navigator.clipboard.writeText(t.value); } catch(e){ try { document.execCommand('copy'); } catch(_){} }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
